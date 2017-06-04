@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  design_skeleton.py
+#  section_removed_by_diff.py
 #  
 #  Copyright 2017 Tigraan <User:Tigraan>
 #  
@@ -81,25 +81,25 @@ def json_to_list_of_sections(json_output):
 		# {'parse': {'pageid': 34745517,
 			   # 'revid': 783718598,
 			   # 'sections': [{'anchor': 'Request:_World_Cafe',
-							 # 'byteoffset': 3329,
-							 # 'fromtitle': 'Wikipedia:Teahouse',
-							 # 'index': '1',
-							 # 'level': '2',
-							 # 'line': 'Request: World Cafe',
-							 # 'number': '1',
-							 # 'toclevel': 1},
-							 # {'anchor': 'How_to_publish_my_page',
-							 # 'byteoffset': 8292,
-							 # 'fromtitle': 'Wikipedia:Teahouse',
-							 # 'index': '2',
-							 # 'level': '2',
-							 # 'line': 'How to publish my page',
-							 # 'number': '2',
-							 # 'toclevel': 1},
-							 
-							# ...snip...
-							
-							# ],
+					# 'byteoffset': 3329,
+					# 'fromtitle': 'Wikipedia:Teahouse',
+					# 'index': '1',
+					# 'level': '2',
+					# 'line': 'Request: World Cafe',
+					# 'number': '1',
+					# 'toclevel': 1},
+					# {'anchor': 'How_to_publish_my_page',
+					# 'byteoffset': 8292,
+					# 'fromtitle': 'Wikipedia:Teahouse',
+					# 'index': '2',
+					# 'level': '2',
+					# 'line': 'How to publish my page',
+					# 'number': '2',
+					# 'toclevel': 1},
+					 
+					# ...snip...
+					
+					# ],
 				# 'title': 'Wikipedia:Teahouse'}}
 				
 	# So, we need to traverse two levels of the dictionary to get to
