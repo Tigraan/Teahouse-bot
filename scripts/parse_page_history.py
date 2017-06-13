@@ -19,40 +19,14 @@
 #  along with this program; if not, write to the Free Software
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
-#  
+#  log
 #  
 
-import logging
-import requests
-import json
-import pprint
-import collections
-import datetime
+#~ import json # note to self: shouldn't this be called somewhere?
 import re
 
+from utilities import api_call,UTC_timestamp_x_days_ago
 
-def api_call(endpoint, parameters):
-	'''Small script by Jtmorgan to call the API.
-	
-	I added a User-agent per https://www.mediawiki.org/wiki/API:Main_page#Identifying_your_client'''
-	
-	#Adding my own user agent per https://www.mediawiki.org/wiki/API:Main_page#Identifying_your_client
-	headers = requests.utils.default_headers()
-	def_ua = headers['User-Agent'] # 'python-requests/2.9.1' or similar
-	my_ua = '{default} - {my_text}'.format(default=def_ua,my_text='User:Tigraan')
-	headers.update(
-		{
-			'User-Agent': my_ua,
-			'From': 'rienenvoyer@gmail.com',
-		}
-	)
-	
-	try:
-		call = requests.get(endpoint, params=parameters, headers=headers)
-		response = call.json()
-	except:
-		response = None
-	return response
 
 def get_revisions_from_api(pagename,oldtimestamp,newtimestamp,apiurl='https://en.wikipedia.org/w/api.php'):
 	'''Get all revisions to specific page since a given timestamp.'''
@@ -72,20 +46,6 @@ def get_revisions_from_api(pagename,oldtimestamp,newtimestamp,apiurl='https://en
 	
 	return api_call_result
 	
-	
-def UTC_timestamp_x_days_ago(days_offset=0):
-	'''Timestamp x days ago in Mediawiki format.
-	
-	Input is the number of days that will be substracted from the
-	current timestamp.
-	Format: cf. https://www.mediawiki.org/wiki/Manual:Timestamp'''
-	
-	current_time = datetime.datetime.utcnow()#UTC time on MediaWiki servers
-	offset = datetime.timedelta(days=-days_offset)
-	UTC_time_then = current_time + offset
-	
-	timestamp = UTC_time_then.strftime("%Y%m%d%H%M%S")
-	return timestamp
 
 def revisions_since_x_days(pagename,ndays):
 	'''Gets revision data for a given page for the last n days.
@@ -166,7 +126,6 @@ def newsections_at_teahouse(ndays=10,thname='Wikipedia:Teahouse'):
 	for rev in rev_table:
 		editsummary = rev['comment']
 		newsection_created = es_created_newsection(editsummary)
-		#~ print(editsummary)
 		if newsection_created['flag']:
 			tosave = {'revid' : rev['revid'],
 					'name' : newsection_created['name'],
@@ -212,25 +171,23 @@ def last_archival_edit(maxdays=1,thname='Wikipedia:Teahouse',archiver='Lowercase
 	
 	
 #~ # Tests
+if __name__ == "__main__": # we are in a test run
+	import pprint
+	#~ # Read possible additional input arguments
+	#~ import sys
+	#~ args = sys.argv[1:]
+	
+	
+	print('This is a test run of the revision table parser.\n')
+	testpage='Wikipedia:Teahouse'
+	revtesthours=2
+	nstesthours=6
+	print('Edits of {tp} since {h} hour(s):'.format(tp=testpage,h=revtesthours))
+	pprint.pprint(revisions_since_x_days(testpage,revtesthours/24))
+	
+	print('New sections at Wikipedia:Teahouse since {h} hour(s):'.format(h=nstesthours))
+	pprint.pprint(newsections_at_teahouse(ndays=nstesthours/24))
+	print('Last archival edit at Wikipedia:Teahouse:')
+	pprint.pprint(last_archival_edit(maxdays=1))
 
-#~ # UTC_timestamp_x_days_ago
-#~ a=UTC_timestamp_x_days_ago(0)
-#~ b=UTC_timestamp_x_days_ago(1)
-#~ c=UTC_timestamp_x_days_ago(30)
-#~ print(a)
-#~ print(b)
-#~ print(c)
 
-#~ #revisions_since_x_days
-#~ a=revisions_since_x_days('Wikipedia:Teahouse',3)
-#~ pprint.pprint(a)
-
-#~ #newsections_at_teahouse
-#~ pprint.pprint(newsections_at_teahouse(ndays=5))
-
-
-
-#last_archival_edit
-#print(last_archival_edit(maxdays=0.1)) #should usually fail
-print(last_archival_edit(maxdays=1))
-#print(last_archival_edit(maxdays=10)) # should give same result as previous

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  section_removed_by_diff.py
+#  sections_removed_by_diff.py
 #  
 #  Copyright 2017 Tigraan <User:Tigraan>
 #  
@@ -22,34 +22,8 @@
 #  
 #  
 
-import logging
-import requests
-import json
-import pprint
-import collections
+from utilities import api_call,safe_list_diff
 
-def api_call(endpoint, parameters):
-	'''Small script by Jtmorgan to call the API.
-	
-	I added a User-agent per https://www.mediawiki.org/wiki/API:Main_page#Identifying_your_client'''
-	
-	#Adding my own user agent per https://www.mediawiki.org/wiki/API:Main_page#Identifying_your_client
-	headers = requests.utils.default_headers()
-	def_ua = headers['User-Agent'] # 'python-requests/2.9.1' or similar
-	my_ua = '{default} - {my_text}'.format(default=def_ua,my_text='User:Tigraan')
-	headers.update(
-		{
-			'User-Agent': my_ua,
-			'From': 'rienenvoyer@gmail.com',
-		}
-	)
-	
-	try:
-		call = requests.get(endpoint, params=parameters, headers=headers)
-		response = call.json()
-	except:
-		response = None
-	return response
 
 def get_sections_from_api(revid,api_url='https://en.wikipedia.org/w/api.php'):
 	'''Get list of section from specific page revision.
@@ -120,40 +94,8 @@ def json_to_list_of_sections(json_output):
 	
 	return output_list
 
-def safe_list_diff(listbefore,listafter):
-	'''Find elements that were removed from one list to another.
-	
-	Compared to a basic set diff, this takes care of the edge case
-	where an element is present multiple times in the larger list
-	by removing it altogether (and logging this fact).
-	Also, it will raise an exception if the second list is not
-	included in the first one (which is expected for an archival diff).'''
-	
-	#Identify the duplicates elements in listbefore. This is needed to
-	#avoid collisions later on. User is warned and duplicates are
-	#removed in the final output.
-	#For the method, see https://stackoverflow.com/questions/11236006/identify-duplicate-values-in-a-list-in-python
-	duplicate_values = [k for k,v in collections.Counter(listbefore).items() if v>1]
-	
-	for val in duplicate_values:
-		logging.warning('Multiple threads that share the same name will be ignored. The name was "{nameofthread}".'.format(nameofthread=val))
-	
-	setbefore= set(listbefore)
-	setafter = set(listafter)
-	setdupes = set(duplicate_values)
-	
-	#Sanity check that listafter <= listbefore (less threads after archiving)
-	should_be_empty = setafter - setbefore
-	#https://www.python.org/dev/peps/pep-0008/#programming-recommendations: "use the fact that empty sequences are false"
-	if should_be_empty:
-		raise ValueError('Not all elements of the second argument list are in the first argument list. Did you pass the correct section lists?', should_be_empty)
-		
-	#If all is well, get the set of threads that were removed and which
-	#are not duplicates
-	setdiff = setbefore - setafter - setdupes
-	return setdiff
 
-def section_removed_by_diff(revid1,revid2):
+def sections_removed_by_diff(revid1,revid2):
 	'''Puts together a diff of removed sections.
 	
 	Output is a set of sections that were removed in revid2 compared to
@@ -173,36 +115,19 @@ def section_removed_by_diff(revid1,revid2):
 	set_of_sections_removed = safe_list_diff(sec_list_1,sec_list_2)
 	return set_of_sections_removed
 	
+if __name__ == "__main__": # we are in a test run
+	import pprint
 	
 	
-	
-def testcase():
-	'''Putting together a "diff" (difference before/after archival).
-	
-	Uses lowercase sigmabot III's archival edit on 2017-06-04'''
-	
-	#Teahouse just before an archival edit (https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&oldid=783715718)
 	id1=783715718
-	#Teahouse just after an archival edit (https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&oldid=783718598)
 	id2=783718598
 	
-	res=section_removed_by_diff(id1,id2)
-	return res
 	
+	print('This is a test run of the section diff tool.\n')
+	print('Permalink to just before an archival edit:')
+	print('https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&oldid={id}'.format(id=id1))
+	print('Permalink to just after an archival edit:')
+	print('https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&oldid={id}\n'.format(id=id2))
+	print('The following sections were removed by this edit:')
+	pprint.pprint(sections_removed_by_diff(id1,id2))
 	
-	
-#~ # Tests of individual subfunctions
-
-#~ # safe_list_diff	
-#~ list1=['a','b','b','c','d']
-#~ list2=['a','c']
-#~ #list2=['a','e'] #causes an exception because 'e' is not in list1
-#~ a=safe_list_diff(list1,list2)
-#~ print(a)
-
-
-#Global test case
-a=testcase()
-print(a)
-
-

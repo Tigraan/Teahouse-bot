@@ -1,3 +1,5 @@
+Diff used in the test run of sections_removed_by_diff.
+
 Content just before archival:
 
 
