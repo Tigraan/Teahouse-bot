@@ -24,8 +24,7 @@
 
 import logging
 
-from sections_removed_by_diff import sections_removed_by_diff
-from parse_page_content import last_archival_edit,newsections_at_teahouse
+from parse_page_content import last_archival_edit,newsections_at_teahouse,sections_removed_by_diff
 from utilities import list_matching
 
 

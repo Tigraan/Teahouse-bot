@@ -122,12 +122,43 @@ def find_section_anchor(inputlistofdict,sectionname):
 	outlist = []
 	
 	for item in inputlistofdict:
-		if sectionname==item['line']: #we have a match
+		if sectionname==item['line']:
 			outlist.append(item['anchor'])
 			
 	return outlist
 	
-
+def search_archive_links_for_section(links_to_search,sectionname):
+	'''Finds a link to an archived thread.
+	
+	This checks the current content of multiple archive links for the
+	desired section name, and ensure only a unique match is accepted.'''
+	matches = []
+	single_find = False
+	for archivelink in links_to_search:
+		linkmatches = find_section_anchor(get_sections_from_api(archivelink),sectionname)
+		if linkmatches: #found (at least) one good thread here
+			candidatelink = archivelink
+		
+		matches += linkmatches # append current matches to old ones
+		if len(matches)>1:
+			# we already have too many matches, and each further call to
+			# get_sections_from_api is a load on the server that should
+			# be avoided
+			break 
+	if len(matches)==0:
+		logging.warning('''No thread "{tn}" found in the links "{links}"'''.format(tn=cur_str,links=links_to_search))
+		return None
+	elif len(matches)>1:
+		logging.warning('''Multiple matches for thread "{tn}" in the links "{links}"'''.format(tn=cur_str,links=links_to_search))
+		return None
+	else: # the good case: one single match
+		# in that case, candidatelink is set to the correct archive link
+		fullarchivelink = candidatelink + "#" + matches[0]
+		return fullarchivelink
+		
+		
+		
+		
 	
 
 # Functions that manipulate edit history
@@ -279,13 +310,17 @@ def last_archival_edit(maxdays=1,thname='Wikipedia:Teahouse',archiver='Lowercase
 			pattern = r'(\[\[.*?\]\])'
 			links = re.findall(pattern,es)
 			
-			if not links: #sanity check that a match was found
+			if not links: #sanity check that at least one match was found
 				raise ValueError('Archival edit summary does not contain any wikilink.',es)
+				
+			
+			# strip brackets
+			strippedlinks = [l[2:-2] for l in links]
 			
 			# save relevant edit information
 			output = {'after' : rev['revid'],
 					'before' : rev['parentid'],
-					'links' : links,
+					'links' : strippedlinks,
 					'es' : es,				#should not be used, but it could help for debugging
 					'archiver' : archiver,	#idem
 					}
@@ -318,3 +353,14 @@ if __name__ == "__main__": # we are in a test run
 	pprint.pprint(last_archival_edit(maxdays=1))
 
 
+	id1=783715718
+	id2=783718598
+	
+	
+	print('\n\nThis is a test run of the section diff tool.\n')
+	print('Permalink to just before an archival edit:')
+	print('https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&oldid={id}'.format(id=id1))
+	print('Permalink to just after an archival edit:')
+	print('https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&oldid={id}\n'.format(id=id2))
+	print('The following sections were removed by this edit:')
+	pprint.pprint(sections_removed_by_diff(id1,id2))
