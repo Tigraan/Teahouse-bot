@@ -127,7 +127,7 @@ def find_section_anchor(inputlistofdict,sectionname):
 			
 	return outlist
 	
-def
+
 	
 
 # Functions that manipulate edit history
