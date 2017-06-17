@@ -25,22 +25,24 @@
 import logging
 
 from sections_removed_by_diff import sections_removed_by_diff
-from parse_page_history import last_archival_edit,newsections_at_teahouse
+from parse_page_content import last_archival_edit,newsections_at_teahouse
+from utilities import list_matching
 
 
 
 def find_and_notify():
-	# Get sections from last archival edit
+	# Get last archival edit
 	lae = last_archival_edit()
 	idbefore = lae['before']
 	idafter  = lae['after']
+	# Sections from last archival edit
 	archived_sections = sections_removed_by_diff(idbefore,idafter) #returns a set
 	
-	# Get new section creations from page history
+	# New section creations in recent days from page history
 	nscreated = newsections_at_teahouse() #returns a list of dict
 	
-	# Match the two
-	thread_matched = 
+	# Compare the two
+	thread_matched = list_matching(archived_sections,nscreated)
 	
 
 

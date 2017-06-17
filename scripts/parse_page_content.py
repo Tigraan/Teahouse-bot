@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-#  parse_page_history.py
+#  parse_page.py
 #  
 #  Copyright 2017 Tigraan <User:Tigraan>
 #  
@@ -22,12 +22,139 @@
 #  log
 #  
 
-#~ import json # note to self: shouldn't this be called somewhere?
+
 import re
 
-from utilities import api_call,UTC_timestamp_x_days_ago
+from utilities import api_call,UTC_timestamp_x_days_ago,safe_diff_list
+
+# Functions that manipulate sections of particular page revisions
+
+def get_sections_from_api(pageindicator,api_url='https://en.wikipedia.org/w/api.php'):
+	'''Get list of sections from specific page revision.
+	
+	Adapted from code by User:Jtmorgan - http://paws-public.wmflabs.org/paws-public/User:Jtmorgan/API_calls.ipynb
+	
+	The page to parse can be specified either by a string (e.g.
+	"Main Page") in which case the latest revision is used, or by an
+	integer, in which case it is treated as a revision number (via
+	'oldid', cf. https://www.mediawiki.org/wiki/API:Parsing_wikitext).
+	
+	'''
+	
+	# check format of input parameter and act accordingly
+	
+	if isinstance(pageindicator, str):
+		
+		params = {'action' : 'parse',
+				'prop' : 'sections',
+				'format' : 'json',
+				'formatversion' : 2,
+				'page' : pageindicator,
+				}
+		
+	else:
+	
+		params = {'action' : 'parse',
+				'prop' : 'sections',
+				'format' : 'json',
+				'formatversion' : 2,
+				'oldid' : pageindicator,
+				}
+				
+	api_call_result = api_call(api_url,params)
+	
+	# The output of get_sections_from_api looks like:
+	
+		# {'parse': {'pageid': 34745517,
+			   # 'revid': 783718598,
+			   # 'sections': [{'anchor': 'Request:_World_Cafe',
+					# 'byteoffset': 3329,
+					# 'fromtitle': 'Wikipedia:Teahouse',
+					# 'index': '1',
+					# 'level': '2',
+					# 'line': 'Request: World Cafe',
+					# 'number': '1',
+					# 'toclevel': 1},
+					# {'anchor': 'How_to_publish_my_page',
+					# 'byteoffset': 8292,
+					# 'fromtitle': 'Wikipedia:Teahouse',
+					# 'index': '2',
+					# 'level': '2',
+					# 'line': 'How to publish my page',
+					# 'number': '2',
+					# 'toclevel': 1},
+					 
+					# ...snip...
+					
+					# ],
+				# 'title': 'Wikipedia:Teahouse'}}
+				
+	# So, we need to traverse two levels of the dictionary to get to
+	# a list of dictionaries; each of those corresponds to a section,
+	# whose 'line' key is our object of interest.
+	
+	
+	sec_list_of_dict = api_call_result['parse']['sections']
+	return sec_list_of_dict
 
 
+def traverse_list_of_sections(inputlistofdict):
+	'''Get list of sections from the API output.
+	
+	Removes the fluff (data offset etc.) from get_sections_from_api.'''
+	
+	
+	output_list = []
+	
+	for item in inputlistofdict:
+		output_list.append(item['line'])
+	
+	return output_list
+
+def find_section_anchor(inputlistofdict,sectionname):
+	'''Matches a section name to the output of get_sections_from_api.
+	
+	Returns a list of section anchors, corresponding to all unique
+	sections that have the name sectionname. The normal case is for the
+	list to have a single element, but returning a list allows easier
+	testing later.'''
+	
+	outlist = []
+	
+	for item in inputlistofdict:
+		if sectionname==item['line']: #we have a match
+			outlist.append(item['anchor'])
+			
+	return outlist
+	
+def
+	
+
+# Functions that manipulate edit history
+
+def sections_removed_by_diff(revid1,revid2):
+	'''Puts together a diff of removed sections.
+	
+	Output is a set of sections that were removed in revid2 compared to
+	revid1. The code does not check whether the page corresponding to
+	the revision IDs is the same, or whether the diff contains
+	intermediary edits. Because it calls safe_list_diff,
+	it will probably throw an exception if a different page is used
+	or if the diff is too far apart, but this should be ensured
+	upstream (when generating the arguments revid1 and revid2).'''
+	
+	json1 = get_sections_from_api(revid=revid1)
+	sec_list_1 = traverse_list_of_sections(json1)
+	
+	json2 = get_sections_from_api(revid=revid2)
+	sec_list_2 = traverse_list_of_sections(json2)
+	
+	set_of_sections_removed = safe_list_diff(sec_list_1,sec_list_2)
+	return set_of_sections_removed
+	
+	
+
+	
 def get_revisions_from_api(pagename,oldtimestamp,newtimestamp,apiurl='https://en.wikipedia.org/w/api.php'):
 	'''Get all revisions to specific page since a given timestamp.'''
 	
