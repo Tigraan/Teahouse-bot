@@ -23,9 +23,9 @@
 #  
 
 
-import re
-
-from utilities import api_call,UTC_timestamp_x_days_ago,safe_diff_list
+import re #regular expressions
+import logging # warning messages etc.
+from utilities import api_call,UTC_timestamp_x_days_ago,safe_list_diff
 
 # Functions that manipulate sections of particular page revisions
 
@@ -127,36 +127,51 @@ def find_section_anchor(inputlistofdict,sectionname):
 			
 	return outlist
 	
-def search_archive_links_for_section(links_to_search,sectionname):
-	'''Finds a link to an archived thread.
+def search_archive_links_for_section(links_to_search,sectionnames):
+	'''Finds links to archived threads.
 	
 	This checks the current content of multiple archive links for the
-	desired section name, and ensure only a unique match is accepted.'''
-	matches = []
-	single_find = False
+	desired section names, and ensure only a unique match is accepted
+	for each. Otherwise, the fact is logged.'''
+	
+	# First, query the API for the content of the archive links
+	
+	archive_contents = dict()
 	for archivelink in links_to_search:
-		linkmatches = find_section_anchor(get_sections_from_api(archivelink),sectionname)
-		if linkmatches: #found (at least) one good thread here
-			candidatelink = archivelink
+		linkcontent = get_sections_from_api(archivelink)
+		archive_contents[archivelink] = linkcontent #use links as keys because why not
+	
+	# Loop over the queried section names
+	out_links = []
+	
+	for sectionname in sectionnames:
+		matches = [] # will hold the matched section(s)
 		
-		matches += linkmatches # append current matches to old ones
-		if len(matches)>1:
-			# we already have too many matches, and each further call to
-			# get_sections_from_api is a load on the server that should
-			# be avoided
-			break 
-	if len(matches)==0:
-		logging.warning('''No thread "{tn}" found in the links "{links}"'''.format(tn=cur_str,links=links_to_search))
-		return None
-	elif len(matches)>1:
-		logging.warning('''Multiple matches for thread "{tn}" in the links "{links}"'''.format(tn=cur_str,links=links_to_search))
-		return None
-	else: # the good case: one single match
-		# in that case, candidatelink is set to the correct archive link
-		fullarchivelink = candidatelink + "#" + matches[0]
-		return fullarchivelink
+		for archivelink in links_to_search:
+			linkmatches = find_section_anchor(archive_contents[archivelink],sectionname)
+			if linkmatches: #found (at least) one good thread there
+				candidatelink = archivelink
+			
+			matches += linkmatches # append current matches to old ones
 		
+		if len(matches)==1: # the good case: we found exactly one match
+			fullarchivelink = candidatelink + "#" + matches[0]
+			out_links.append(fullarchivelink)
+			continue
+			
+		# If we did not continue, we are in the bad case, so we default
+		# the link to an empty string
+		out_links.append('')
 		
+		# Log the problem
+		
+		if len(matches)==0:
+			logging.warning('''No thread "{tn}" found in the links "{links}"'''.format(tn=sectionname,links=links_to_search))
+		else: # len(matches)>1
+			logging.warning('''Multiple matches for thread "{tn}" in the links "{links}"'''.format(tn=sectionname,links=links_to_search))
+			
+		
+	return out_links
 		
 		
 	
@@ -174,10 +189,10 @@ def sections_removed_by_diff(revid1,revid2):
 	or if the diff is too far apart, but this should be ensured
 	upstream (when generating the arguments revid1 and revid2).'''
 	
-	json1 = get_sections_from_api(revid=revid1)
+	json1 = get_sections_from_api(revid1)
 	sec_list_1 = traverse_list_of_sections(json1)
 	
-	json2 = get_sections_from_api(revid=revid2)
+	json2 = get_sections_from_api(revid2)
 	sec_list_2 = traverse_list_of_sections(json2)
 	
 	set_of_sections_removed = safe_list_diff(sec_list_1,sec_list_2)
@@ -245,7 +260,7 @@ def revisions_since_x_days(pagename,ndays):
 	tmp = blob['query']['pages']
 	tmp2 = list(tmp.keys()) # ['36896'] in the previous example, but it can change
 	
-	#Beware: if the blob contains no revisions, the following line will
+	#Beware: if the blob contains no revisions, the following line will
 	#fail with a KeyError because the key 'revisions' will not exist.
 	revs = tmp[tmp2[0]]['revisions']
 	
@@ -332,13 +347,9 @@ def last_archival_edit(maxdays=1,thname='Wikipedia:Teahouse',archiver='Lowercase
 			
 	
 	
-#~ # Tests
-if __name__ == "__main__": # we are in a test run
+# Test run
+if __name__ == "__main__":
 	import pprint
-	#~ # Read possible additional input arguments
-	#~ import sys
-	#~ args = sys.argv[1:]
-	
 	
 	print('This is a test run of the revision table parser.\n')
 	testpage='Wikipedia:Teahouse'
@@ -347,20 +358,16 @@ if __name__ == "__main__": # we are in a test run
 	print('Edits of {tp} since {h} hour(s):'.format(tp=testpage,h=revtesthours))
 	pprint.pprint(revisions_since_x_days(testpage,revtesthours/24))
 	
-	print('New sections at Wikipedia:Teahouse since {h} hour(s):'.format(h=nstesthours))
+	print('\nNew sections at Wikipedia:Teahouse since {h} hour(s):'.format(h=nstesthours))
 	pprint.pprint(newsections_at_teahouse(ndays=nstesthours/24))
-	print('Last archival edit at Wikipedia:Teahouse:')
-	pprint.pprint(last_archival_edit(maxdays=1))
-
-
-	id1=783715718
-	id2=783718598
+	
+	lae = last_archival_edit(maxdays=1)
+	id1=lae['before']
+	id2=lae['after']
+	link = 'https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&type=revision&diff={id2}&oldid={id1}'.format(id1=id1,id2=id2)
+	print('\nLast archival edit at Wikipedia:Teahouse: {link}'.format(link=link))
+	pprint.pprint(lae)
 	
 	
-	print('\n\nThis is a test run of the section diff tool.\n')
-	print('Permalink to just before an archival edit:')
-	print('https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&oldid={id}'.format(id=id1))
-	print('Permalink to just after an archival edit:')
-	print('https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&oldid={id}\n'.format(id=id2))
-	print('The following sections were removed by this edit:')
+	print('\nThe following sections were removed by this edit:')
 	pprint.pprint(sections_removed_by_diff(id1,id2))

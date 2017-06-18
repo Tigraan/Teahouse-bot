@@ -24,10 +24,18 @@
 
 import logging
 
-from parse_page_content import last_archival_edit,newsections_at_teahouse,sections_removed_by_diff
+from parse_page_content import last_archival_edit,sections_removed_by_diff,newsections_at_teahouse,search_archive_links_for_section
 from utilities import list_matching
+from userinfo import isnotifiable
 
-
+def notify(user,tn,al,pl='Wikipedia:Teahouse',bn='Tigraan-testbot',istestrun=True):
+	formatspec='pagelinked={pl}|threadname={tn}|archivelink={al}|botname={bn}'
+	argstr=formatspec.format(pl=pl,tn=tn,al=al,bn=bn)
+	if istestrun:
+		print('[[User talk:' + user + ']] -> {{subst:User:Tigraan-testbot/Teahouse archival notification|' + argstr + '}}')
+	#~ else:
+		# Perform here the real notification
+		# Do not activate until bot approval was run!
 
 def find_and_notify():
 	# Get last archival edit
@@ -35,19 +43,48 @@ def find_and_notify():
 	idbefore = lae['before']
 	idafter  = lae['after']
 	# Sections from last archival edit
-	archived_sections = sections_removed_by_diff(idbefore,idafter) #returns a set
+	archived_sections = sections_removed_by_diff(idbefore,idafter) #set
 	
 	# New section creations in recent days from page history
-	nscreated = newsections_at_teahouse() #returns a list of dict
+	nscreated = newsections_at_teahouse() #list of dict
 	
-	# Compare the two
-	thread_matched = list_matching(archived_sections,nscreated)
+	# List of threads that were archived in last archival edit, which
+	# could be matched to their creation in the last few days
+	thread_matched = list_matching(archived_sections,nscreated) # list of dict
+	thread_matched_names = [thread['name'] for thread in thread_matched] # list of thread names
+	thread_matched_users = [thread['user'] for thread in thread_matched] # list of thread OPs
 	
+	
+	#~ print('Matched sections:')
+	#~ print(thread_matched_names)
+	
+	# For those, try and recover the corresponding archival link
+	# (including anchor)
+	possible_archive_links = lae['links']
+	list_of_archive_links = search_archive_links_for_section(possible_archive_links,thread_matched_names)# list of str
+	
+	# Check if user can be notified
+	is_notifiable = isnotifiable(thread_matched_users)
+	
+	# Generate notifications
+	N = len(list_of_archive_links)
+	for i in range(N):
+		al = list_of_archive_links[i]
+		if not al:
+			# skip if the archive link is empty, i.e. it was not found
+			# previously (such an event was logged)
+			continue
+			
+		username = thread_matched_users[i]
+		tn = thread_matched_names[i]
+		
+		if not is_notifiable[username]:
+			logging.warning('User "{un}" is ineligible to notifications.'.format(un=username))
+			continue
+		
+		notify(username,tn,al,istestrun=True)
 
 
-def main(args):
-    return 0
 
 if __name__ == '__main__':
-    import sys
-    sys.exit(main(sys.argv))
+    find_and_notify()

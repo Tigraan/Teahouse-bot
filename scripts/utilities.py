@@ -135,13 +135,18 @@ def list_matching(threadsarchived,threadscreated):
 	for i in range(len(ta)):
 		cur_str = ta[i]
 		matching_indices = [j for j,k in enumerate(threadscreated) if k['name'] == cur_str]
-		if not matching_indices: #0 matches
+		
+		if len(matching_indices)==1: #normal case, one single match
+			output.append(threadscreated[matching_indices[0]])
+			continue
+		
+		# exceptional cases
+		if len(matching_indices)==0: #0 matches
 			logging.warning('''No matches for the creation of the following thread: "{tn}"'''.format(tn=cur_str))
 		else:
-			if len(matching_indices)>1: #2 or more matches
-				logging.warning('''Multiple matches (all will be ignored) for the creation of the following thread: "{tn}"'''.format(tn=cur_str))
-			else: # the normal case
-				output.append(threadscreated[matching_indices[0]])
+			logging.warning('''Multiple matches (all will be ignored) for the creation of the following thread: "{tn}"'''.format(tn=cur_str))
+		
+				
 	return output
 	
 	
