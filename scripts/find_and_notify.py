@@ -28,16 +28,33 @@ from parse_page_content import last_archival_edit,sections_removed_by_diff,newse
 from utilities import list_matching
 from userinfo import isnotifiable
 
-def notify(user,tn,al,pl='Wikipedia:Teahouse',bn='Tigraan-testbot',istestrun=True):
-	formatspec='pagelinked={pl}|threadname={tn}|archivelink={al}|botname={bn}'
-	argstr=formatspec.format(pl=pl,tn=tn,al=al,bn=bn)
-	if istestrun:
-		print('[[User talk:' + user + ']] -> {{subst:User:Tigraan-testbot/Teahouse archival notification|' + argstr + '}}')
-	#~ else:
-		# Perform here the real notification
-		# Do not activate until bot approval was run!
+# We need pywikibot and the add_text script
+# Directory "core" from https://gerrit.wikimedia.org/r/pywikibot/core.git
+# must be available on the Python path.
 
-def find_and_notify():
+#HORRIBLE HACK, CLOSE YOUR EYES#
+
+# The problem with PWB is that at load time it tries to read a config file.
+# This config file is within its directory and for whatever reason cannot
+# be found at load time.
+import os, sys
+cwd = os.getcwd() # current directory
+ #hardcoded directory for 'core'
+magic_dir_path = '/home/jm/.local/lib/python3.5/site-packages/core'
+
+sys.path.append(magic_dir_path) # add path to pwb to find the modules11
+os.chdir(magic_dir_path) # move to the pwb directory, so that the config file is found at import.
+
+
+import pywikibot
+from scripts import add_text,login
+
+os.chdir(cwd) # returns working directory to original place
+
+#END OF HORRIBLE HACK#
+
+def generate_notification_list():
+
 	# Get last archival edit
 	lae = last_archival_edit()
 	idbefore = lae['before']
@@ -66,26 +83,116 @@ def find_and_notify():
 	# Check if user can be notified
 	is_notifiable = isnotifiable(thread_matched_users)
 	
-	# Generate notifications
+	# Generate notification list
 	N = len(list_of_archive_links)
+	notification_list = list()
 	for i in range(N):
-		al = list_of_archive_links[i]
-		if not al:
-			# skip if the archive link is empty, i.e. it was not found
-			# previously (such an event was logged)
-			continue
-			
 		username = thread_matched_users[i]
 		tn = thread_matched_names[i]
+		al = list_of_archive_links[i]
+		
+		
+		notif = {'user' : username,
+			'thread' : tn,
+			'invalid': False,
+			}
+		
+		if al:
+			notif['archivelink'] = al
+			
+		else:
+			# skip if the archive link is empty, i.e. it was not found
+			# previously (such an event was logged)
+			notif['invalid']=True
+			notif['reason']='archive link not found'
+			
 		
 		if not is_notifiable[username]:
-			#~ # Already logged when generating the "notifiability" list
+			notif['invalid']=True
+			notif['reason']='user is not notifiable'
+			#~ # The next warning is superfluous: this was already logged
+			#~ # when generating the "notifiability" list
 			#~ logging.warning('User "{un}" is ineligible to notifications.'.format(un=username))
-			continue
 		
-		notify(username,tn,al,istestrun=True)
+		
+		notification_list.append(notif)
+		
+	return notification_list
 
 
+
+def notify(user,argstr,teststep):
+	if teststep==1:
+		
+		site = pywikibot.Site('test','test')
+		page = pywikibot.Page(site, 'User talk:Tigraan-testbot/THA log')
+		section_name = 'Notification intended for [[:en:User talk:' + user + ']]'
+		es = 'Notification intended for [[:en:User talk:' + user + ']]'
+	
+	elif teststep==2:
+	
+		site = pywikibot.Site('en','wikipedia')
+		page = pywikibot.Page(site, 'User talk:Tigraan-testbot/THA log')
+		section_name = 'Notification intended for [[:en:User talk:' + user + ']]'
+		es = 'Notification intended for [[:en:User talk:' + user + ']]'
+	
+	elif teststep==0:
+		#put production code here
+		if False:			
+			site = pywikibot.Site('en','wikipedia')
+			page = pywikibot.Page(site, 'User talk:' + user)
+			section_name = 'Your thread has been archived'
+			es = 'Your thread has been archived'
+
+	# 0 for production, all the rest creates a "this is in test phase" comment
+	if teststep>0:
+		test_comment = "</br><small>If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>"
+		text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|' + argstr + '|additionaltext=' + test_comment + '}}'
+	else:
+		text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|' + argstr + '}}'
+		
+	post_text = '=={sn}==\n{tta}'.format(sn=section_name,tta=text)
+		
+	add_text.add_text(page, post_text, summary=section_name,
+             always=False, up=False, create=True)
+	
+	
+
+def notify_all(notification_list,status,archive_from='Wikipedia:Teahouse',botname='Tigraan-testbot'):
+
+	formatspec='pagelinked={pl}|threadname={tn}|archivelink={al}|botname={bn}|editorname={en}'
+	warnmsg = 'Thread "{thread}" by user {user} will not cause notification: {reason}.'
+	for item in notification_list:
+		user = item['user']
+		thread = item['thread']
+		
+		if item['invalid']:
+			logging.warning(warnmsg.formatspec(thread=thread,user=user,reason=item['reason']))
+			continue
+		archivelink = item['archivelink']
+		
+		argstr = formatspec.format(pl=archive_from,tn=thread,al=archivelink,bn=botname,en=user)
+				
+		
+		if status=='offlinetest':
+			print('[[User talk:' + user + ']] -> {{subst:User:Tigraan-testbot/Teahouse archival notification|' + argstr + '}}')
+		elif status=='test-1':
+			notify(user,argstr,teststep=1)
+		elif status=='test-2':
+			notify(user,argstr,teststep=2)
+		elif status=='test-3':
+			notify(user,argstr,teststep=3)
+		elif status=='prod':
+			notify(user,argstr,teststep=0)
+		else:
+			raise ValueError('Option was not understood.', status)
+
+def main():
+	
+	notiflist = generate_notification_list()
+	#~ login.main('-all')
+	notify_all(notiflist,status='test-2')
+	#~ login.main('-logout')
 
 if __name__ == '__main__':
-    find_and_notify()
+	main()
