@@ -79,7 +79,8 @@ def find_and_notify():
 		tn = thread_matched_names[i]
 		
 		if not is_notifiable[username]:
-			logging.warning('User "{un}" is ineligible to notifications.'.format(un=username))
+			#~ # Already logged when generating the "notifiability" list
+			#~ logging.warning('User "{un}" is ineligible to notifications.'.format(un=username))
 			continue
 		
 		notify(username,tn,al,istestrun=True)

@@ -22,21 +22,24 @@
 #  
 #  
 from utilities import api_call
+import logging
 
 def list_to_API_format(listin):
 	'''Transforms a list of strings to the API input format.'''
 	
 
-def get_users_info(userlist,infotoget=['blockinfo','groups','editcount'],endpoint='https://en.wikipedia.org/w/api.php'):
+def get_user_info(userlist,infotoget=['groups','editcount'],endpoint='https://en.wikipedia.org/w/api.php'):
 	'''Query the API for user info.
 	
 	userlist is a list of strings, each string being a username.'''
+	
 	API_user_string = '|'.join(userlist)
+	API_info_string = '|'.join(infotoget)
 	
 	params = {'action' : 'query',
 			'list' : 'users',
 			'ususers' : API_user_string,
-			'usprop' : 'blockinfo|groups|editcount',
+			'usprop' : API_info_string,
 			'format' : 'json',
 			'formatversion' : 2,
 			}
@@ -87,8 +90,51 @@ def get_users_info(userlist,infotoget=['blockinfo','groups','editcount'],endpoin
 	for entry in resultlist:
 		resultdict[entry['name']] = entry
 	return resultdict
+	
+def get_block_info(userlist,endpoint='https://en.wikipedia.org/w/api.php'):
+	'''Query the API for block info.
+	
+	userlist is a list of strings, each string being a username.
+	This returns a dictionary such that dict[user] is True if the user
+	currently (1) exists and (2) is blocked, False otherwise.'''
+	user_string = '|'.join(userlist)
+	
+	params = {'action' : 'query',
+			'list' : 'blocks',
+			'bkusers' : user_string,
+			'bkprop' : 'user',
+			'format' : 'json',
+			'formatversion' : 2,
+			}
+			
+	rawoutput = api_call(endpoint,params)
+	#Example: (https://en.wikipedia.org/w/api.php?action=query&list=blocks&bkusers=85.17.92.13|91.200.12.136|1.2.3.4&bkprop=user)
+		#{
+			#"batchcomplete": "",
+			#"query": {
+				#"blocks": [
+					#{
+						#"user": "91.200.12.136"
+					#},
+					#{
+						#"user": "85.17.92.13"
+					#}
+				#]
+			#}
+		#}
+	
+	# traverse the first two levels
+	resultlist = rawoutput['query']['blocks']
+	
+	# we transform the result into a dict of bool
+	
+	resultdict = dict()
+	for user in userlist:
+		resultdict[user] = ({'user':user} in resultlist)
+	return resultdict
 
 #TODO: make bot exclusion compliant
+#Should be handled in the "posting notifications" part?
 def isnotifiable(users):
 	'''Check if specified users can be notified.
 	
@@ -100,41 +146,56 @@ def isnotifiable(users):
 	For instance pywikibot's scripts should take care of it, per
 	https://en.wikipedia.org/wiki/Template:Bots#Implementation'''
 	
-	# Initialize output
-	is_notifiable = dict((u,True) for u in users) #by default, True
-	
 	# Get relevant info from API
 	# Note: should get as little as needed...
 	
-	#~ userinfo = get_users_info(users,infotoget=['blockinfo','groups','editcount']
-	userinfo = get_users_info(users,infotoget=['blockinfo'])
-	# Note: 'blockinfo' returns only active blocks
+	# Blocking info
+	# Note: get_user_info cannot be used to check for blocks, because
+	# https://www.mediawiki.org/wiki/API:Users fails to give any output
+	# for IP editors. See also https://www.mediawiki.org/w/index.php?title=Topic:Tspl9p7oiyzzm19w
 	
-	#	 POLICY APPLIES HERE
+	isblocked = get_block_info(users)
+	
+	# Other general user information
+	# WARNING! For IP editors, all we get is the 'invalid' key.
+	# Do not rely on this to get (e.g.) the edit count of an IP editor!
+	
+	userinfo = get_user_info(users,infotoget=['groups'])
+	
+	
+	is_notifiable = dict()
 	for u in users:
 		info = userinfo[u]
 		
-		# If user does not exist (rename?) do not notify
+	###	 NOTIFICATION POLICY APPLIES HERE		###
+	
+		# By default, we should notify
+		# Each exception will be logged
+		is_notifiable[u] = True
+		
+		# If username does not exist (rename?) do not notify
 		if 'missing' in info:
 			is_notifiable[u] = False
+			logging.warning('Username "{un}" does not seem to exist. No notification will be sent.'.format(un=u))
 			
+	
 		# Do not notify currently-blocked users
-		if 'blockid' in info:
+		if isblocked[u]:
 			is_notifiable[u] = False
+			logging.warning('User "{un}" is blocked and will not be notified.'.format(un=u))
 			
 		#~ # Do not notify users with more than x edits
 		#~ maxedits = 1000
-		#~ if info['editcount']<maxedits:
+		#~ if info['editcount']>maxedits:
 			#~ is_notifiable[u] = False
+			#~ logging.warning('User "{un}" performed more than {nedits} edits and will not be notified.'.format(un=u,nedits=maxedits))
+			
+		#~ # Do not notify users with the ECP flag
+		#~ if 'extendedconfirmed' in info['groups']:
+			#~ is_notifiable[u] = False
+			#~ logging.warning('User "{un}" is extended confirmed and will not be notified.'.format(un=u))
 			
 		
-		# TEMPORARY / TODO
-		#For IP editors, the query returns "invalid" whether blocked or
-		#not; see https://www.mediawiki.org/w/index.php?title=Topic:Tspl9p7oiyzzm19w
-		#Since most TH posters are logged-in, forget about notifying IPs
-		#until I find the way to query correctly
-		if 'invalid' in info:
-			is_notifiable[u] = False
 		
 	return is_notifiable
 	
@@ -144,7 +205,10 @@ if __name__ == '__main__':
 	from pprint import pprint
 	# Jimbo Wales: an account with all user rights
 	# Sandbox for user warnings: a user with expired blocks
-	# Danadan / 12.54.29.3: two indeffed users
+	# Danadan / 12.54.29.3: two indeffed users
 	# This username does not exist: a nonexistent user
-	a=get_users_info(['Jimbo Wales','Sandbox for user warnings','Dananadan','12.54.29.3','This username does not exist']) 
-	pprint(a)
+	userlist = ['Jimbo Wales','Sandbox for user warnings','Dananadan','12.54.29.3','This username does not exist']
+	#~ pprint(get_user_info(userlist))
+	#~ pprint(get_block_info(userlist))
+	pprint(isnotifiable(userlist))
+	
