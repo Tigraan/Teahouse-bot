@@ -1,0 +1,192 @@
+Run with test level 3.
+Local folder names redacted for privacy.
+Local time in timestamps = GMT+2
+
+.../Teahouse-bot/scripts$ python3 find_and_notify.py
+Password for user Tigraan-testbot on test:test (no characters will be shown): 
+Logging in to test:test as Tigraan-testbot
+WARNING: API warning (login): Main-account login via "action=login" is deprecated and may stop working without warning. To continue login with "action=login", see [[Special:BotPasswords]]. To safely continue using main-account login, see "action=clientlogin".
+WARNING: API warning (main): Subscribe to the mediawiki-api-announce mailing list at <https://lists.wikimedia.org/mailman/listinfo/mediawiki-api-announce> for notice of API deprecations and breaking changes. Use [[Special:ApiFeatureUsage]] to see usage of deprecated features by your application.
+Logged in on test:test as Tigraan-testbot.
+WARNING:root:No matches for the creation of the following thread: "I am looking for some feedback on my first article written around the North Highland Way."
+Loading User talk:ShibaSan...
+INFO:pywiki:Loading User talk:ShibaSan...
+VERBOSE:pywiki:Found 1 wikipedia:en processes running, including this one.
+
+
+>>> User talk:ShibaSan <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:ShibaSan{default} <<<
+@@ -11 +11 @@
+- Please take a few moments to read and review Wikipedia's policies regarding conflicts of interest, especially those pertaining to [[Wikipedia:Neutral point of view|neutral point of view]], [[Wikipedia:Verifiability|sourcing]] and [[Wikipedia:Autobiography|autobiographies]].  Thank you.<!-- THE FOLLOWING CATEGORY SHOULD BE REMOVED IF THE USER IS BLOCKED, OR IT IS DECIDED THAT THIS USER DOES NOT HAVE A COI, OR THIS TEMPLATE HAS BEEN IN PLACE FOR A WHILE WITH NO ACTION. -->{{#ifexpr: ({{CURRENTTIMESTAMP}} - 20170330000506) < 5000000000 | [[Category:User talk pages with conflict of interest notices|{{PAGENAME}}]] |  }}<!-- Template:uw-coi --> [[User:Justeditingtoday|Justeditingtoday]] ([[User talk:Justeditingtoday|talk]]) 23:56, 29 March 2017 (UTC)
++ Please take a few moments to read and review Wikipedia's policies regarding conflicts of interest, especially those pertaining to [[Wikipedia:Neutral point of view|neutral point of view]], [[Wikipedia:Verifiability|sourcing]] and [[Wikipedia:Autobiography|autobiographies]].  Thank you.<!-- THE FOLLOWING CATEGORY SHOULD BE REMOVED IF THE USER IS BLOCKED, OR IT IS DECIDED THAT THIS USER DOES NOT HAVE A COI, OR THIS TEMPLATE HAS BEEN IN PLACE FOR A WHILE WITH NO ACTION. -->{{#ifexpr: ({{CURRENTTIMESTAMP}} - 20170330000506) < 5000000000 | |  }}<!-- Template:uw-coi --> [[User:Justeditingtoday|Justeditingtoday]] ([[User talk:Justeditingtoday|talk]]) 23:56, 29 March 2017 (UTC)
+
+@@ -31 +31,6 @@
+- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
++ <!-- Template:Teahouse_HostBot_Invitation -->
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Shiba San - I began an article that violated the terms and would like to find the content|archivelink=Wikipedia:Teahouse/Questions/Archive 630#Shiba_San_-_I_began_an_article_that_violated_the_terms_and_would_like_to_find_the_content|botname=Tigraan-testbot|editorname=ShibaSan|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
++ 
++ [[Category:User talk pages with conflict of interest notices|{{PAGENAME}}]]
++ [[Category:Wikipedians who have received a Teahouse invitation]]
+
+INFO:pywiki:{aqua}@@ -11 +11 @@{default}
+{lightred}-{default} Please take a few moments to read and review Wikipedia's policies regarding conflicts of interest, especially those pertaining to [[Wikipedia:Neutral point of view|neutral point of view]], [[Wikipedia:Verifiability|sourcing]] and [[Wikipedia:Autobiography|autobiographies]].  Thank you.<!-- THE FOLLOWING CATEGORY SHOULD BE REMOVED IF THE USER IS BLOCKED, OR IT IS DECIDED THAT THIS USER DOES NOT HAVE A COI, OR THIS TEMPLATE HAS BEEN IN PLACE FOR A WHILE WITH NO ACTION. -->{{#ifexpr: ({{CURRENTTIMESTAMP}} - 20170330000506) < 5000000000 | {lightred}[[Category:User talk pages with conflict of interest notices{default}|{lightred}{{PAGENAME}}]] |{default}  }}<!-- Template:uw-coi --> [[User:Justeditingtoday|Justeditingtoday]] ([[User talk:Justeditingtoday|talk]]) 23:56, 29 March 2017 (UTC)
+{lightgreen}+{default} Please take a few moments to read and review Wikipedia's policies regarding conflicts of interest, especially those pertaining to [[Wikipedia:Neutral point of view|neutral point of view]], [[Wikipedia:Verifiability|sourcing]] and [[Wikipedia:Autobiography|autobiographies]].  Thank you.<!-- THE FOLLOWING CATEGORY SHOULD BE REMOVED IF THE USER IS BLOCKED, OR IT IS DECIDED THAT THIS USER DOES NOT HAVE A COI, OR THIS TEMPLATE HAS BEEN IN PLACE FOR A WHILE WITH NO ACTION. -->{{#ifexpr: ({{CURRENTTIMESTAMP}} - 20170330000506) < 5000000000 | {lightgreen}|  }}<!-- Template:uw-coi --> [[User:Justeditingtoday|Justed{default}i{lightgreen}tingtoday]] ([[U{default}ser talk:Justeditingtoday|talk]]) 23:56, 29 March 2017 (UTC)
+
+{aqua}@@ -31 +31,6 @@{default}
+{lightred}- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
+{default}{lightgreen}+ <!-- Template:Teahouse_HostBot_Invitation -->
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Shiba San - I began an article that violated the terms and would like to find the content|archivelink=Wikipedia:Teahouse/Questions/Archive 630#Shiba_San_-_I_began_an_article_that_violated_the_terms_and_would_like_to_find_the_content|botname=Tigraan-testbot|editorname=ShibaSan|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}{lightgreen}+ 
+{default}{lightgreen}+ [[Category:User talk pages with conflict of interest notices|{{PAGENAME}}]]
+{default}{lightgreen}+ [[Category:Wikipedians who have received a Teahouse invitation]]
+{default}
+Sleeping for 9.1 seconds, 2017-06-27 21:17:40
+INFO:pywiki:Sleeping for 9.1 seconds, 2017-06-27 21:17:40
+Page [[wikipedia:en:User talk:ShibaSan]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:ShibaSan]] saved
+Loading User talk:NS4545678...
+INFO:pywiki:Loading User talk:NS4545678...
+
+
+>>> User talk:NS4545678 <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:NS4545678{default} <<<
+@@ -17 +17,3 @@
+- {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|Can you please help?|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 02:45, 24 June 2017 (UTC)}}
++ {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|Can you please help?|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 02:45, 24 June 2017 (UTC)}}
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Can you please help?|archivelink=Wikipedia:Teahouse/Questions/Archive 630#Can_you_please_help.3F|botname=Tigraan-testbot|editorname=NS4545678|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+
+INFO:pywiki:{aqua}@@ -17 +17,3 @@{default}
+{lightred}- {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|Can you please help?|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 02:45, 24 June 2017 (UTC)}}
+{default}{lightgreen}+{default} {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|Can you please help?|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 02:45, 24 June 2017 (UTC)}}{lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Can you please help?|archivelink=Wikipedia:Teahouse/Questions/Archive 630#Can_you_please_help.3F|botname=Tigraan-testbot|editorname=NS4545678|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}
+VERBOSE:pywiki:APISite("en", "wikipedia").login(False) called when a previous login was in progress.
+Sleeping for 9.0 seconds, 2017-06-27 21:17:50
+INFO:pywiki:Sleeping for 9.0 seconds, 2017-06-27 21:17:50
+Page [[wikipedia:en:User talk:NS4545678]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:NS4545678]] saved
+Loading User talk:Naawada2016...
+INFO:pywiki:Loading User talk:Naawada2016...
+
+
+>>> User talk:Naawada2016 <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Naawada2016{default} <<<
+@@ -30 +30,3 @@
+- ((reply to|CorbieVreccan))Hi and thanks for the information. I have spent my time improving articles but I try to learn more about how to edit in line with the standards. I will try to remember your fine advise.[[User:Naawada2016|Naawada2016]] ([[User talk:Naawada2016#top|talk]]) 08:37, 24 June 2017 (UTC)
++ ((reply to|CorbieVreccan))Hi and thanks for the information. I have spent my time improving articles but I try to learn more about how to edit in line with the standards. I will try to remember your fine advise.[[User:Naawada2016|Naawada2016]] ([[User talk:Naawada2016#top|talk]]) 08:37, 24 June 2017 (UTC)
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Remove a map of my own with an error|archivelink=Wikipedia:Teahouse/Questions/Archive 630#Remove_a_map_of_my_own_with_an_error|botname=Tigraan-testbot|editorname=Naawada2016|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+
+INFO:pywiki:{aqua}@@ -30 +30,3 @@{default}
+{lightred}- ((reply to|CorbieVreccan))Hi and thanks for the information. I have spent my time improving articles but I try to learn more about how to edit in line with the standards. I will try to remember your fine advise.[[User:Naawada2016|Naawada2016]] ([[User talk:Naawada2016#top|talk]]) 08:37, 24 June 2017 (UTC)
+{default}{lightgreen}+{default} ((reply to|CorbieVreccan))Hi and thanks for the information. I have spent my time improving articles but I try to learn more about how to edit in line with the standards. I will try to remember your fine advise.[[User:Naawada2016|Naawada2016]] ([[User talk:Naawada2016#top|talk]]) 08:37, 24 June 2017 (UTC){lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Remove a map of my own with an error|archivelink=Wikipedia:Teahouse/Questions/Archive 630#Remove_a_map_of_my_own_with_an_error|botname=Tigraan-testbot|editorname=Naawada2016|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}
+Sleeping for 9.2 seconds, 2017-06-27 21:18:00
+INFO:pywiki:Sleeping for 9.2 seconds, 2017-06-27 21:18:00
+Page [[wikipedia:en:User talk:Naawada2016]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Naawada2016]] saved
+Loading User talk:Jd02022092...
+INFO:pywiki:Loading User talk:Jd02022092...
+
+
+>>> User talk:Jd02022092 <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Jd02022092{default} <<<
+@@ -38 +38,3 @@
+- :Addendum: The same decline was made on a similar article, [[:Look Plus]]. Thank you, Mz7, for your feedback. [[User:Jd02022092|jd22292]] <span style="background-color:#368ec9; color:#6babd6">(Jalen D. Folf)</span> 23:25, 24 June 2017 (UTC)
++ :Addendum: The same decline was made on a similar article, [[:Look Plus]]. Thank you, Mz7, for your feedback. [[User:Jd02022092|jd22292]] <span style="background-color:#368ec9; color:#6babd6">(Jalen D. Folf)</span> 23:25, 24 June 2017 (UTC)
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Advice for sources for my draft|archivelink=Wikipedia:Teahouse/Questions/Archive 630#Advice_for_sources_for_my_draft|botname=Tigraan-testbot|editorname=Jd02022092|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+
+INFO:pywiki:{aqua}@@ -38 +38,3 @@{default}
+{lightred}- :Addendum: The same decline was made on a similar article, [[:Look Plus]]. Thank you, Mz7, for your feedback. [[User:Jd02022092|jd22292]] <span style="background-color:#368ec9; color:#6babd6">(Jalen D. Folf)</span> 23:25, 24 June 2017 (UTC)
+{default}{lightgreen}+{default} :Addendum: The same decline was made on a similar article, [[:Look Plus]]. Thank you, Mz7, for your feedback. [[User:Jd02022092|jd22292]] <span style="background-color:#368ec9; color:#6babd6">(Jalen D. Folf)</span> 23:25, 24 June 2017 (UTC){lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Advice for sources for my draft|archivelink=Wikipedia:Teahouse/Questions/Archive 630#Advice_for_sources_for_my_draft|botname=Tigraan-testbot|editorname=Jd02022092|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}
+Sleeping for 8.4 seconds, 2017-06-27 21:18:11
+INFO:pywiki:Sleeping for 8.4 seconds, 2017-06-27 21:18:11
+Page [[wikipedia:en:User talk:Jd02022092]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Jd02022092]] saved
+Loading User talk:Kirschnik...
+INFO:pywiki:Loading User talk:Kirschnik...
+
+
+>>> User talk:Kirschnik <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Kirschnik{default} <<<
+@@ -100 +100,5 @@
+- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
++ <!-- Template:Teahouse_HostBot_Invitation -->
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=acting against policy|archivelink=Wikipedia:Teahouse/Questions/Archive 630#acting_against_policy|botname=Tigraan-testbot|editorname=Kirschnik|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
++ 
++ [[Category:Wikipedians who have received a Teahouse invitation]]
+
+INFO:pywiki:{aqua}@@ -100 +100,5 @@{default}
+{lightred}- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
+{default}{lightgreen}+ <!-- Template:Teahouse_HostBot_Invitation -->
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=acting against policy|archivelink=Wikipedia:Teahouse/Questions/Archive 630#acting_against_policy|botname=Tigraan-testbot|editorname=Kirschnik|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}{lightgreen}+ 
+{default}{lightgreen}+ [[Category:Wikipedians who have received a Teahouse invitation]]
+{default}
+Sleeping for 9.0 seconds, 2017-06-27 21:18:20
+INFO:pywiki:Sleeping for 9.0 seconds, 2017-06-27 21:18:20
+Page [[wikipedia:en:User talk:Kirschnik]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Kirschnik]] saved
+WARNING: $HOME/.local/lib/python3.5/site-packages/core/pywikibot/bot.py:856: UserWarning: Site objects have been created before arguments were handled
+WARNING:py.warnings:$HOME/.local/lib/python3.5/site-packages/core/pywikibot/bot.py:856: UserWarning: Site objects have been created before arguments were handled
+ERROR: Logged in as '213.245.126.134' instead of 'Tigraan-testbot'. Forcing re-login.
+ERROR:pywiki:Logged in as '213.245.126.134' instead of 'Tigraan-testbot'. Forcing re-login.
+Traceback (most recent call last):
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/login.py", line 100, in __init__
+    self.username = self.username or family_sysopnames['*']
+KeyError: '*'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "find_and_notify.py", line 206, in <module>
+    main()
+  File "find_and_notify.py", line 203, in main
+    login.main('-logout') #logout
+  File "$HOME/.local/lib/python3.5/site-packages/core/scripts/login.py", line 174, in main
+    site.logout()
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/site.py", line 2129, in logout
+    self.getuserinfo(force=True)
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/site.py", line 2155, in getuserinfo
+    uidata = uirequest.submit()
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/data/api.py", line 2029, in submit
+    self.site._relogin()
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/site.py", line 2113, in _relogin
+    self.login(old_status)
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/site.py", line 2090, in login
+    user=self._username[sysop])
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/tools/__init__.py", line 1458, in wrapper
+    return obj(*__args, **__kw)
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/login.py", line 108, in __init__
+    'wiki_code': self.site.code})
+pywikibot.exceptions.NoUsername: ERROR: Sysop username for test:test is undefined.
+If you have a sysop account for that site, please add a line to user-config.py:
+
+sysopnames['test']['test'] = 'myUsername'
+VERBOSE:pywiki:Dropped throttle(s).
+<class 'pywikibot.exceptions.NoUsername'>
+CRITICAL: Closing network session.
+CRITICAL:pywiki:Closing network session.
+VERBOSE:pywiki:Network session closed.
