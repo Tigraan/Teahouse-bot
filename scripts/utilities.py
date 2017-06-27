@@ -41,7 +41,6 @@ def my_user_agent():
 	headers.update(
 		{
 			'User-Agent': my_ua,
-			'From': 'rienenvoyer@gmail.com',
 		}
 	)
 	return headers
@@ -59,8 +58,26 @@ def api_call(endpoint, parameters):
 		call = requests.get(endpoint, params=parameters, headers=headers)
 		response = call.json()
 	except:
+		print(parameters)
 		response = None
 	return response
+
+	
+	
+def whoami(endpoint='https://en.wikipedia.org/w/api.php'):
+	'''Check the currently logged-in user.
+	
+	'''
+	
+	params = {'action' : 'query',
+			'meta' : 'userinfo',
+			'format' : 'json',
+			'formatversion' : 2,
+			}
+						
+	rawoutput = api_call(endpoint, params)
+	return rawoutput['query']['userinfo']
+
 
 #Small tool to obtain and convert timestamps to Mediawiki format.
 
@@ -152,9 +169,8 @@ def list_matching(threadsarchived,threadscreated):
 	
 	
 if __name__ == "__main__": # we are in a test run
-	#~ # Read possible additional input arguments
-	#~ import sys
-	#~ args = sys.argv[1:]
+	
+	
 	from pprint import pprint
 	
 	cur_timestamp = UTC_timestamp_x_days_ago(0)

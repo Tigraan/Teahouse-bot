@@ -26,7 +26,7 @@ import logging
 
 def list_to_API_format(listin):
 	'''Transforms a list of strings to the API input format.'''
-	
+
 
 def get_user_info(userlist,infotoget=['groups','editcount'],endpoint='https://en.wikipedia.org/w/api.php'):
 	'''Query the API for user info.

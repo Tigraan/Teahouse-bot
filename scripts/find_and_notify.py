@@ -22,34 +22,30 @@
 #  
 #  
 
-import logging
+import logging, os, sys
 
 from parse_page_content import last_archival_edit,sections_removed_by_diff,newsections_at_teahouse,search_archive_links_for_section
-from utilities import list_matching
+from utilities import list_matching, api_call, whoami
 from userinfo import isnotifiable
 
 # We need pywikibot and the add_text script
 # Directory "core" from https://gerrit.wikimedia.org/r/pywikibot/core.git
 # must be available on the Python path.
-
-#HORRIBLE HACK, CLOSE YOUR EYES#
+# We add it on the Python path at runtime.
 
 # The problem with PWB is that at load time it tries to read a config file.
-# This config file is within its directory and for whatever reason cannot
-# be found at load time.
-import os, sys
-cwd = os.getcwd() # current directory
- #hardcoded directory for 'core'
-magic_dir_path = '/home/jm/.local/lib/python3.5/site-packages/core'
+# This config file needs to be found at load time. For that, it needs to
+# be either in the current working directory, or in $HOME/.pywikibot.
+# It is NOT enough that it is in the directory from which PWB is imported.
+# Cf. https://en.wikipedia.org/wiki/Wikipedia:Bots/Requests_for_approval/Tigraan-testbot
 
-sys.path.append(magic_dir_path) # add path to pwb to find the modules11
-os.chdir(magic_dir_path) # move to the pwb directory, so that the config file is found at import.
+# Directory for 'core' package containing the PWB framework
+path_to_PWB = os.path.expandvars('$HOME/.local/lib/python3.5/site-packages/core')
 
+sys.path.append(path_to_PWB) # add path to pwb to find the modules11
 
 import pywikibot
-from scripts import add_text,login
-
-os.chdir(cwd) # returns working directory to original place
+from scripts import add_text,login # the pieces of pywikibot that we need to call
 
 #END OF HORRIBLE HACK#
 
@@ -136,6 +132,12 @@ def notify(user,argstr,teststep):
 		section_name = 'Notification intended for [[:en:User talk:' + user + ']]'
 		es = 'Notification intended for [[:en:User talk:' + user + ']]'
 	
+	elif teststep==3:
+		site = pywikibot.Site('en','wikipedia')
+		page = pywikibot.Page(site, 'User talk:' + user)
+		section_name = 'Your thread has been archived'
+		es = 'Automated notification of thread archival (test run)'
+			
 	elif teststep==0:
 		#put production code here
 		if False:			
@@ -146,19 +148,22 @@ def notify(user,argstr,teststep):
 
 	# 0 for production, all the rest creates a "this is in test phase" comment
 	if teststep>0:
-		test_comment = "</br><small>If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>"
+		test_comment = "</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>"
 		text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|' + argstr + '|additionaltext=' + test_comment + '}}'
 	else:
 		text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|' + argstr + '}}'
 		
 	post_text = '=={sn}==\n{tta}'.format(sn=section_name,tta=text)
 		
+	#~ add_text.add_text(page, post_text, summary=section_name,
+             #~ always=False, up=False, create=True)
+	# Caution: will not ask for confirmation!
 	add_text.add_text(page, post_text, summary=section_name,
-             always=False, up=False, create=True)
+             always=True, up=False, create=True)
 	
 	
 
-def notify_all(notification_list,status,archive_from='Wikipedia:Teahouse',botname='Tigraan-testbot'):
+def notify_all(notification_list,status,archive_from='[[Wikipedia:Teahouse]]',botname='Tigraan-testbot'):
 
 	formatspec='pagelinked={pl}|threadname={tn}|archivelink={al}|botname={bn}|editorname={en}'
 	warnmsg = 'Thread "{thread}" by user {user} will not cause notification: {reason}.'
@@ -189,10 +194,13 @@ def notify_all(notification_list,status,archive_from='Wikipedia:Teahouse',botnam
 
 def main():
 	
+	# log in
+	login.main() #login as Tigraan-testbot
+	
 	notiflist = generate_notification_list()
-	#~ login.main('-all')
-	notify_all(notiflist,status='test-2')
-	#~ login.main('-logout')
-
+	
+	notify_all(notiflist,status='test-3')
+	login.main('-logout') #logout
+	print(whoami())
 if __name__ == '__main__':
 	main()
