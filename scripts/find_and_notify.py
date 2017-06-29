@@ -158,7 +158,7 @@ def notify(user,argstr,teststep):
 	#~ add_text.add_text(page, post_text, summary=section_name,
              #~ always=False, up=False, create=True)
 	# Caution: will not ask for confirmation!
-	add_text.add_text(page, post_text, summary=section_name,
+	add_text.add_text(page, post_text, summary=es,
              always=True, up=False, create=True)
 	
 	
