@@ -173,7 +173,7 @@ def notify_all(notification_list,status,archive_from='[[Wikipedia:Teahouse]]',bo
 		thread = item['thread']
 		
 		if item['invalid']:
-			logging.warning(warnmsg.formatspec(thread=thread,user=user,reason=item['reason']))
+			logging.warning(warnmsg.format(thread=thread,user=user,reason=item['reason']))
 			continue
 		archivelink = item['archivelink']
 		
