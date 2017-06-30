@@ -132,7 +132,7 @@ def safe_list_diff(listbefore,listafter):
 
 	
 def list_matching(threadsarchived,threadscreated):
-	'''Matches elements from two lists.
+	'''Matches string elements from two lists.
 	
 	We have on the one hand a list of threads that underwent the last
 	archival, and on the other hand a list of created new sections.
@@ -144,14 +144,17 @@ def list_matching(threadsarchived,threadscreated):
 	with name collisions). threadscreated is a list of dict; each dict
 	contains at least 'name', the thread title to match.
 	The output is a list of dict, the subset of threadscreated
-	that have been matched exactly once in threadsarchived.'''
+	that have been matched exactly once in threadsarchived.
+	
+	Leading and trailing white spaces are discarded during the comparison
+	because of some obscure false positive cases identified at test run.'''
 	
 	output=[]
 	ta=list(threadsarchived) # necessary for index addressing
 	
 	for i in range(len(ta)):
-		cur_str = ta[i]
-		matching_indices = [j for j,k in enumerate(threadscreated) if k['name'] == cur_str]
+		cur_str = ta[i].strip()
+		matching_indices = [j for j,k in enumerate(threadscreated) if k['name'].strip() == cur_str]
 		
 		if len(matching_indices)==1: #normal case, one single match
 			output.append(threadscreated[matching_indices[0]])
