@@ -201,8 +201,11 @@ def sections_removed_by_diff(revid1,revid2):
 	
 
 	
-def get_revisions_from_api(pagename,oldtimestamp,newtimestamp,apiurl='https://en.wikipedia.org/w/api.php'):
-	'''Get all revisions to specific page since a given timestamp.'''
+def get_revisions_from_api(pagename,oldtimestamp,newtimestamp,maxcontinuenumber=0,continuestring=None,apiurl='https://en.wikipedia.org/w/api.php'):
+	'''Get all revisions to specific page since a given timestamp.
+	
+	This can also pull multiple pages with the rvcontinue API key. To do so,
+	specify a continuenumber (maximum number of additional pages to pull).'''
 	
 	params = {'action' : 'query',
 			'prop' : 'revisions',
@@ -214,25 +217,13 @@ def get_revisions_from_api(pagename,oldtimestamp,newtimestamp,apiurl='https://en
 			'rvstart' : newtimestamp,
 			'rvlimit' : 'max'
 			}
+			
+			
+	# Previous call may require to continue a call
+	if continuestring:
+		params['rvcontinue']=continuestring
+			
 	api_call_result = api_call(apiurl,params)
-	
-	
-	return api_call_result
-	
-
-def revisions_since_x_days(pagename,ndays):
-	'''Gets revision data for a given page for the last n days.
-	
-	'''
-	
-
-	
-	#Per https://www.mediawiki.org/wiki/API:Revisions, rvstart is newer
-	#than rvend if we list in reverse chronological order
-	#(newer revisions first), i.e. "end" and "start" refer to the list.
-	oldtimestamp = UTC_timestamp_x_days_ago(days_offset=ndays)
-	currenttimestamp = UTC_timestamp_x_days_ago(days_offset=0)
-	blob = get_revisions_from_api(pagename,oldtimestamp,currenttimestamp)
 	
 	#At that point we still have some hierarchy to traverse.
 	#Example output for 'blob': (2 revisions of 'Lion' on en-wp)
@@ -257,12 +248,38 @@ def revisions_since_x_days(pagename,ndays):
 													  #'timestamp': '2017-06-02T07:38:02Z',
 													  #'user': 'Leo1pard'}],
 									   #'title': 'Lion'}}}}
-	tmp = blob['query']['pages']
-	tmp2 = list(tmp.keys()) # ['36896'] in the previous example, but it can change
 	
-	#Beware: if the blob contains no revisions, the following line will
-	#fail with a KeyError because the key 'revisions' will not exist.
-	revs = tmp[tmp2[0]]['revisions']
+	tmp = api_call_result['query']['pages']
+	tmp2 = list(tmp.keys()) # ['36896'] in the previous example, but it can change
+	revlist = tmp[tmp2[0]]['revisions']
+	
+	# Check if we need to pull more revisions
+	# If so, recursively call itself and merge results
+	
+	if maxcontinuenumber>0 and not 'batchcomplete' in api_call_result:
+		#'batchcomplete' key present = no continue needed
+		#maxcontinuenumber<=0 = we have reached the maximum of continues
+		cs = api_call_result['continue']['rvcontinue']
+		recursively_called_list = get_revisions_from_api(pagename,oldtimestamp,newtimestamp,maxcontinuenumber=maxcontinuenumber-1,continuestring=cs,apiurl=apiurl)
+		full_list = revlist + recursively_called_list
+		return full_list
+	else:
+		return revlist
+	
+
+def revisions_since_x_days(pagename,ndays,maxcontinuenumber=0):
+	'''Gets revision data for a given page for the last n days.
+	
+	'''
+	
+
+	
+	#Per https://www.mediawiki.org/wiki/API:Revisions, rvstart is newer
+	#than rvend if we list in reverse chronological order
+	#(newer revisions first), i.e. "end" and "start" refer to the list.
+	oldtimestamp = UTC_timestamp_x_days_ago(days_offset=ndays)
+	currenttimestamp = UTC_timestamp_x_days_ago(days_offset=0)
+	revs = get_revisions_from_api(pagename,oldtimestamp,currenttimestamp,maxcontinuenumber=maxcontinuenumber)
 	
 	return revs
 	
@@ -288,12 +305,12 @@ def es_created_newsection(editsummary):
 	
 	
 	
-def newsections_at_teahouse(ndays=10,thname='Wikipedia:Teahouse'):
+def newsections_at_teahouse(ndays=10,thname='Wikipedia:Teahouse',maxcontinuenumber=0):
 	'''Gets the revisions and finds 'new section' creations.
 	
 	ndays is set to 10 by default: parses the last 10 days of Teahouse posts.'''
 	
-	rev_table = revisions_since_x_days(thname,ndays)
+	rev_table = revisions_since_x_days(thname,ndays,maxcontinuenumber=maxcontinuenumber)
 	
 	output = []
 	for rev in rev_table:
@@ -354,12 +371,13 @@ if __name__ == "__main__":
 	print('This is a test run of the revision table parser.\n')
 	testpage='Wikipedia:Teahouse'
 	revtesthours=2
-	nstesthours=6
 	print('Edits of {tp} since {h} hour(s):'.format(tp=testpage,h=revtesthours))
 	pprint.pprint(revisions_since_x_days(testpage,revtesthours/24))
 	
-	print('\nNew sections at Wikipedia:Teahouse since {h} hour(s):'.format(h=nstesthours))
-	pprint.pprint(newsections_at_teahouse(ndays=nstesthours/24))
+	nstesthours=600
+	ncontinues=1
+	print('\nNew sections at Wikipedia:Teahouse since {h} hour(s) (max {pp}*500revs):'.format(h=nstesthours,pp=ncontinues+1))
+	pprint.pprint(newsections_at_teahouse(ndays=nstesthours/24,maxcontinuenumber=ncontinues))
 	
 	lae = last_archival_edit(maxdays=1)
 	id1=lae['before']
@@ -367,7 +385,5 @@ if __name__ == "__main__":
 	link = 'https://en.wikipedia.org/w/index.php?title=Wikipedia:Teahouse&type=revision&diff={id2}&oldid={id1}'.format(id1=id1,id2=id2)
 	print('\nLast archival edit at Wikipedia:Teahouse: {link}'.format(link=link))
 	pprint.pprint(lae)
-	
-	
 	print('\nThe following sections were removed by this edit:')
 	pprint.pprint(sections_removed_by_diff(id1,id2))

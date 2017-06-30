@@ -59,7 +59,8 @@ def generate_notification_list():
 	archived_sections = sections_removed_by_diff(idbefore,idafter) #set
 	
 	# New section creations in recent days from page history
-	nscreated = newsections_at_teahouse() #list of dict
+	maxpagestopull = 5
+	nscreated = newsections_at_teahouse(maxcontinuenumber=maxpagestopull) #list of dict
 	
 	# List of threads that were archived in last archival edit, which
 	# could be matched to their creation in the last few days
