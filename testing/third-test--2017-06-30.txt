@@ -1,0 +1,332 @@
+Run with test level 3.
+Local folder names redacted for privacy.
+Local time in timestamps = GMT+2
+
+.../Teahouse-bot/scripts$ python3 find_and_notify.py 
+Logged in on test:test as Tigraan-testbot.
+WARNING:root:No matches for the creation of the following thread: "Inquiries from Nazim Hussain Pak"
+WARNING:root:No thread "How to change Username? " found in the links "['Wikipedia:Teahouse/Questions/Archive 631']"
+WARNING:root:No thread "Writing colorful text " found in the links "['Wikipedia:Teahouse/Questions/Archive 631']"
+WARNING:root:User "Badri K Vishal 2006" is blocked and will not be notified.
+VERBOSE:pywiki:Found 1 wikipedia:en processes running, including this one.
+Loading User talk:WomenArtistUpdates...
+INFO:pywiki:Loading User talk:WomenArtistUpdates...
+
+
+>>> User talk:WomenArtistUpdates <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:WomenArtistUpdates{default} <<<
+@@ -96 +96 @@
+- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
++ <!-- Template:Teahouse_HostBot_Invitation -->
+
+@@ -125 +125,5 @@
+- [[User:Jcc|jcc]] ([[User talk:Jcc#top|tea and biscuits]]) 19:13, 24 June 2017 (UTC)</div><!--Template:Afc decline-->
++ [[User:Jcc|jcc]] ([[User talk:Jcc#top|tea and biscuits]]) 19:13, 24 June 2017 (UTC)</div><!--Template:Afc decline-->
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Help with Draft:Edna Meade Colson|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Help_with_Draft:Edna_Meade_Colson|botname=Tigraan-testbot|editorname=WomenArtistUpdates|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
++ 
++ [[Category:Wikipedians who have received a Teahouse invitation]]
+
+INFO:pywiki:{aqua}@@ -96 +96 @@{default}
+{lightred}- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
+{default}{lightgreen}+ <!-- Template:Teahouse_HostBot_Invitation -->
+{default}
+{aqua}@@ -125 +125,5 @@{default}
+{lightred}- [[User:Jcc|jcc]] ([[User talk:Jcc#top|tea and biscuits]]) 19:13, 24 June 2017 (UTC)</div><!--Template:Afc decline-->
+{default}{lightgreen}+{default} [[User:Jcc|jcc]] ([[User talk:Jcc#top|tea and biscuits]]) 19:13, 24 June 2017 (UTC)</div><!--Template:Afc decline-->{lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Help with Draft:Edna Meade Colson|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Help_with_Draft:Edna_Meade_Colson|botname=Tigraan-testbot|editorname=WomenArtistUpdates|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}{lightgreen}+ 
+{default}{lightgreen}+ [[Category:Wikipedians who have received a Teahouse invitation]]
+{default}
+Sleeping for 8.8 seconds, 2017-07-01 00:24:16
+INFO:pywiki:Sleeping for 8.8 seconds, 2017-07-01 00:24:16
+Page [[wikipedia:en:User talk:WomenArtistUpdates]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:WomenArtistUpdates]] saved
+Loading User talk:Nazim Hussain Pak...
+INFO:pywiki:Loading User talk:Nazim Hussain Pak...
+
+
+>>> User talk:Nazim Hussain Pak <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Nazim Hussain Pak{default} <<<
+@@ -1,2 +0,0 @@
+- 
+- 
+
+@@ -83 +81,3 @@
+- An editor has asked for a discussion to address the redirect [[Chak Choti Shafi]]. Since you had some involvement with the ''Chak Choti Shafi'' redirect, you might want to participate in [[Wikipedia:Redirects for discussion/Log/2017 June 30#Chak Choti Shafi|the redirect discussion]] if you have not already done so. <!-- from Template:RFDNote --> [[User:Cordless Larry|Cordless Larry]] ([[User talk:Cordless Larry|talk]]) 08:16, 30 June 2017 (UTC)
++ An editor has asked for a discussion to address the redirect [[Chak Choti Shafi]]. Since you had some involvement with the ''Chak Choti Shafi'' redirect, you might want to participate in [[Wikipedia:Redirects for discussion/Log/2017 June 30#Chak Choti Shafi|the redirect discussion]] if you have not already done so. <!-- from Template:RFDNote --> [[User:Cordless Larry|Cordless Larry]] ([[User talk:Cordless Larry|talk]]) 08:16, 30 June 2017 (UTC)
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Why wikipedia and wikimedia commons are so porn?|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Why_wikipedia_and_wikimedia_commons_are_so_porn.3F|botname=Tigraan-testbot|editorname=Nazim Hussain Pak|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+
+INFO:pywiki:{aqua}@@ -1,2 +0,0 @@{default}
+{lightred}- 
+{default}{lightred}- 
+{default}
+{aqua}@@ -83 +81,3 @@{default}
+{lightred}- An editor has asked for a discussion to address the redirect [[Chak Choti Shafi]]. Since you had some involvement with the ''Chak Choti Shafi'' redirect, you might want to participate in [[Wikipedia:Redirects for discussion/Log/2017 June 30#Chak Choti Shafi|the redirect discussion]] if you have not already done so. <!-- from Template:RFDNote --> [[User:Cordless Larry|Cordless Larry]] ([[User talk:Cordless Larry|talk]]) 08:16, 30 June 2017 (UTC)
+{default}{lightgreen}+{default} An editor has asked for a discussion to address the redirect [[Chak Choti Shafi]]. Since you had some involvement with the ''Chak Choti Shafi'' redirect, you might want to participate in [[Wikipedia:Redirects for discussion/Log/2017 June 30#Chak Choti Shafi|the redirect discussion]] if you have not already done so. <!-- from Template:RFDNote --> [[User:Cordless Larry|Cordless Larry]] ([[User talk:Cordless Larry|talk]]) 08:16, 30 June 2017 (UTC){lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Why wikipedia and wikimedia commons are so porn?|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Why_wikipedia_and_wikimedia_commons_are_so_porn.3F|botname=Tigraan-testbot|editorname=Nazim Hussain Pak|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}
+VERBOSE:pywiki:APISite("en", "wikipedia").login(False) called when a previous login was in progress.
+Sleeping for 9.0 seconds, 2017-07-01 00:24:26
+INFO:pywiki:Sleeping for 9.0 seconds, 2017-07-01 00:24:26
+Page [[wikipedia:en:User talk:Nazim Hussain Pak]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Nazim Hussain Pak]] saved
+Loading User talk:Adityavagarwal...
+INFO:pywiki:Loading User talk:Adityavagarwal...
+
+
+>>> User talk:Adityavagarwal <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Adityavagarwal{default} <<<
+@@ -19 +19 @@
+- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
++ <!-- Template:Teahouse_HostBot_Invitation -->
+
+@@ -513 +513,5 @@
+- <!-- Message sent by User:Cwmhiraeth@enwiki using the list at https://en.wikipedia.org/w/index.php?title=Wikipedia:WikiCup/Newsletter/Send&oldid=787488836 -->
++ <!-- Message sent by User:Cwmhiraeth@enwiki using the list at https://en.wikipedia.org/w/index.php?title=Wikipedia:WikiCup/Newsletter/Send&oldid=787488836 -->
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Question|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Question|botname=Tigraan-testbot|editorname=Adityavagarwal|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
++ 
++ [[Category:Wikipedians who have received a Teahouse invitation]]
+
+INFO:pywiki:{aqua}@@ -19 +19 @@{default}
+{lightred}- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
+{default}{lightgreen}+ <!-- Template:Teahouse_HostBot_Invitation -->
+{default}
+{aqua}@@ -513 +513,5 @@{default}
+{lightred}- <!-- Message sent by User:Cwmhiraeth@enwiki using the list at https://en.wikipedia.org/w/index.php?title=Wikipedia:WikiCup/Newsletter/Send&oldid=787488836 -->
+{default}{lightgreen}+{default} <!-- Message sent by User:Cwmhiraeth@enwiki using the list at https://en.wikipedia.org/w/index.php?title=Wikipedia:WikiCup/Newsletter/Send&oldid=787488836 -->{lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Question|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Question|botname=Tigraan-testbot|editorname=Adityavagarwal|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}{lightgreen}+ 
+{default}{lightgreen}+ [[Category:Wikipedians who have received a Teahouse invitation]]
+{default}
+Sleeping for 8.6 seconds, 2017-07-01 00:24:36
+INFO:pywiki:Sleeping for 8.6 seconds, 2017-07-01 00:24:36
+Page [[wikipedia:en:User talk:Adityavagarwal]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Adityavagarwal]] saved
+Loading User talk:Albretch Mueller...
+INFO:pywiki:Loading User talk:Albretch Mueller...
+
+
+>>> User talk:Albretch Mueller <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Albretch Mueller{default} <<<
+@@ -1 +0,0 @@
+- 
+
+@@ -24 +23 @@
+- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
++ <!-- Template:Teahouse_HostBot_Invitation -->
+
+@@ -36 +35,5 @@
+- {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|Linking section of Manual of Style without explanation about linking to automatic translation sites ...|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 15:52, 26 June 2017 (UTC)}}
++ {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|Linking section of Manual of Style without explanation about linking to automatic translation sites ...|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 15:52, 26 June 2017 (UTC)}}
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Linking section of Manual of Style without explanation about linking to automatic translation sites ...|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Linking_section_of_Manual_of_Style_without_explanation_about_linking_to_automatic_translation_sites_...|botname=Tigraan-testbot|editorname=Albretch Mueller|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
++ 
++ [[Category:Wikipedians who have received a Teahouse invitation]]
+
+INFO:pywiki:{aqua}@@ -1 +0,0 @@{default}
+{lightred}- 
+{default}
+{aqua}@@ -24 +23 @@{default}
+{lightred}- [[Category:Wikipedians who have received a Teahouse invitation]]<!-- Template:Teahouse_HostBot_Invitation -->
+{default}{lightgreen}+ <!-- Template:Teahouse_HostBot_Invitation -->
+{default}
+{aqua}@@ -36 +35,5 @@{default}
+{lightred}- {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|Linking section of Manual of Style without explanation about linking to automatic translation sites ...|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 15:52, 26 June 2017 (UTC)}}
+{default}{lightgreen}+{default} {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|Linking section of Manual of Style without explanation about linking to automatic translation sites ...|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 15:52, 26 June 2017 (UTC)}}{lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Linking section of Manual of Style without explanation about linking to automatic translation sites ...|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Linking_section_of_Manual_of_Style_without_explanation_about_linking_to_automatic_translation_sites_...|botname=Tigraan-testbot|editorname=Albretch Mueller|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}{lightgreen}+ 
+{default}{lightgreen}+ [[Category:Wikipedians who have received a Teahouse invitation]]
+{default}
+Sleeping for 8.0 seconds, 2017-07-01 00:24:47
+INFO:pywiki:Sleeping for 8.0 seconds, 2017-07-01 00:24:47
+Page [[wikipedia:en:User talk:Albretch Mueller]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Albretch Mueller]] saved
+Loading User talk:Nazim Hussain Pak...
+INFO:pywiki:Loading User talk:Nazim Hussain Pak...
+
+
+>>> User talk:Nazim Hussain Pak <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Nazim Hussain Pak{default} <<<
+@@ -95 +95,3 @@
+- |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
++ |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=My problem is at its place!|archivelink=Wikipedia:Teahouse/Questions/Archive 631#My_problem_is_at_its_place.21|botname=Tigraan-testbot|editorname=Nazim Hussain Pak|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+
+INFO:pywiki:{aqua}@@ -95 +95,3 @@{default}
+{lightred}- |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
+{default}{lightgreen}+{default} |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->{lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=My problem is at its place!|archivelink=Wikipedia:Teahouse/Questions/Archive 631#My_problem_is_at_its_place.21|botname=Tigraan-testbot|editorname=Nazim Hussain Pak|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}
+Sleeping for 9.1 seconds, 2017-07-01 00:24:55
+INFO:pywiki:Sleeping for 9.1 seconds, 2017-07-01 00:24:55
+Page [[wikipedia:en:User talk:Nazim Hussain Pak]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Nazim Hussain Pak]] saved
+Loading User talk:Nazim Hussain Pak...
+INFO:pywiki:Loading User talk:Nazim Hussain Pak...
+
+
+>>> User talk:Nazim Hussain Pak <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Nazim Hussain Pak{default} <<<
+@@ -109 +109,3 @@
+- |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
++ |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Pictures are still being displayed!|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Pictures_are_still_being_displayed.21|botname=Tigraan-testbot|editorname=Nazim Hussain Pak|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+
+INFO:pywiki:{aqua}@@ -109 +109,3 @@{default}
+{lightred}- |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
+{default}{lightgreen}+{default} |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->{lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Pictures are still being displayed!|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Pictures_are_still_being_displayed.21|botname=Tigraan-testbot|editorname=Nazim Hussain Pak|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}
+Sleeping for 9.2 seconds, 2017-07-01 00:25:05
+INFO:pywiki:Sleeping for 9.2 seconds, 2017-07-01 00:25:05
+Page [[wikipedia:en:User talk:Nazim Hussain Pak]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Nazim Hussain Pak]] saved
+WARNING:root:Thread "How to change Username? " by user Nazim Hussain Pak will not cause notification: archive link not found.
+WARNING:root:Thread "Writing colorful text " by user Nazim Hussain Pak will not cause notification: archive link not found.
+Loading User talk:BCPdigital...
+INFO:pywiki:Loading User talk:BCPdigital...
+
+
+>>> User talk:BCPdigital <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:BCPdigital{default} <<<
+@@ -29 +29,5 @@
+- {{#ifeq:{{NAMESPACE}}|{{ns:3}}|[[Category:Wikipedians who have received a Teahouse invitation through AfC]]}}<!-- Wikipedia:Teahouse/AfC Invitation -->
++ {{#ifeq:{{NAMESPACE}}|{{ns:3}}|}}<!-- Wikipedia:Teahouse/AfC Invitation -->
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Review|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Review|botname=Tigraan-testbot|editorname=BCPdigital|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
++ 
++ [[Category:Wikipedians who have received a Teahouse invitation through AfC]]
+
+INFO:pywiki:{aqua}@@ -29 +29,5 @@{default}
+{lightred}- {{#ifeq:{{NAMESPACE}}|{{ns:3}}|[[Category:Wikipedians who have received a Teahouse invitation through AfC]]}}<!-- Wikipedia:Teahouse/AfC Invitation -->
+{default}{lightgreen}+ {{#ifeq:{{NAMESPACE}}|{{ns:3}}|}}<!-- Wikipedia:Teahouse/AfC Invitation -->
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Review|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Review|botname=Tigraan-testbot|editorname=BCPdigital|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}{lightgreen}+ 
+{default}{lightgreen}+ [[Category:Wikipedians who have received a Teahouse invitation through AfC]]
+{default}
+Sleeping for 8.9 seconds, 2017-07-01 00:25:16
+INFO:pywiki:Sleeping for 8.9 seconds, 2017-07-01 00:25:16
+Page [[wikipedia:en:User talk:BCPdigital]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:BCPdigital]] saved
+WARNING:root:Thread "May I know why are you deleting my articles" by user Badri K Vishal 2006 will not cause notification: user is not notifiable.
+Loading User talk:Tasty Gamer...
+INFO:pywiki:Loading User talk:Tasty Gamer...
+
+
+>>> User talk:Tasty Gamer <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Tasty Gamer{default} <<<
+@@ -1 +0,0 @@
+- 
+
+@@ -16 +15,3 @@
+- {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|How to add links.|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 16:09, 26 June 2017 (UTC)}}
++ {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|How to add links.|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 16:09, 26 June 2017 (UTC)}}
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=How to add links.|archivelink=Wikipedia:Teahouse/Questions/Archive 631#How_to_add_links.|botname=Tigraan-testbot|editorname=Tasty Gamer|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+
+INFO:pywiki:{aqua}@@ -1 +0,0 @@{default}
+{lightred}- 
+{default}
+{aqua}@@ -16 +15,3 @@{default}
+{lightred}- {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|How to add links.|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 16:09, 26 June 2017 (UTC)}}
+{default}{lightgreen}+{default} {{Wikipedia:Teahouse/Teahouse talkback|WP:Teahouse|How to add links.|ts=[[User:DESiegel|DES]] [[User talk:DESiegel|<sup>(talk)</sup>]][[Special:Contributions/DESiegel|<sub>DESiegel Contribs</sub>]] 16:09, 26 June 2017 (UTC)}}{lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=How to add links.|archivelink=Wikipedia:Teahouse/Questions/Archive 631#How_to_add_links.|botname=Tigraan-testbot|editorname=Tasty Gamer|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}
+Sleeping for 9.2 seconds, 2017-07-01 00:25:25
+INFO:pywiki:Sleeping for 9.2 seconds, 2017-07-01 00:25:25
+Page [[wikipedia:en:User talk:Tasty Gamer]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Tasty Gamer]] saved
+Loading User talk:Nazim Hussain Pak...
+INFO:pywiki:Loading User talk:Nazim Hussain Pak...
+
+
+>>> User talk:Nazim Hussain Pak <<<
+INFO:pywiki:
+
+>>> {lightpurple}User talk:Nazim Hussain Pak{default} <<<
+@@ -123 +123,3 @@
+- |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
++ |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
++ ==Your thread has been archived==
++ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Good User|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Good_User|botname=Tigraan-testbot|editorname=Nazim Hussain Pak|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+
+INFO:pywiki:{aqua}@@ -123 +123,3 @@{default}
+{lightred}- |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->
+{default}{lightgreen}+{default} |}<!-- User:Tigraan-testbot/Teahouse_archival_notification -->{lightgreen}
+{default}{lightgreen}+ ==Your thread has been archived==
+{default}{lightgreen}+ {{subst:User:Tigraan-testbot/Teahouse archival notification|pagelinked=[[Wikipedia:Teahouse]]|threadname=Good User|archivelink=Wikipedia:Teahouse/Questions/Archive 631#Good_User|botname=Tigraan-testbot|editorname=Nazim Hussain Pak|additionaltext=</br><small>This functionality is currently being tested. If you received this notification by error, please [[User talk:Tigraan|notify the bot's maintainer]].</small>}}
+{default}
+Sleeping for 9.2 seconds, 2017-07-01 00:25:35
+INFO:pywiki:Sleeping for 9.2 seconds, 2017-07-01 00:25:35
+Page [[wikipedia:en:User talk:Nazim Hussain Pak]] saved
+INFO:pywiki:Page [[wikipedia:en:User talk:Nazim Hussain Pak]] saved
+WARNING: $HOME/.local/lib/python3.5/site-packages/core/pywikibot/bot.py:856: UserWarning: Site objects have been created before arguments were handled
+WARNING:py.warnings:$HOME/.local/lib/python3.5/site-packages/core/pywikibot/bot.py:856: UserWarning: Site objects have been created before arguments were handled
+ERROR: Logged in as '213.245.126.134' instead of 'Tigraan-testbot'. Forcing re-login.
+ERROR:pywiki:Logged in as '213.245.126.134' instead of 'Tigraan-testbot'. Forcing re-login.
+Traceback (most recent call last):
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/login.py", line 100, in __init__
+    self.username = self.username or family_sysopnames['*']
+KeyError: '*'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "find_and_notify.py", line 207, in <module>
+    main()
+  File "find_and_notify.py", line 204, in main
+    login.main('-logout') #logout
+  File "$HOME/.local/lib/python3.5/site-packages/core/scripts/login.py", line 174, in main
+    site.logout()
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/site.py", line 2129, in logout
+    self.getuserinfo(force=True)
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/site.py", line 2155, in getuserinfo
+    uidata = uirequest.submit()
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/data/api.py", line 2029, in submit
+    self.site._relogin()
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/site.py", line 2113, in _relogin
+    self.login(old_status)
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/site.py", line 2090, in login
+    user=self._username[sysop])
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/tools/__init__.py", line 1458, in wrapper
+    return obj(*__args, **__kw)
+  File "$HOME/.local/lib/python3.5/site-packages/core/pywikibot/login.py", line 108, in __init__
+    'wiki_code': self.site.code})
+pywikibot.exceptions.NoUsername: ERROR: Sysop username for test:test is undefined.
+If you have a sysop account for that site, please add a line to user-config.py:
+
+sysopnames['test']['test'] = 'myUsername'
+VERBOSE:pywiki:Dropped throttle(s).
+<class 'pywikibot.exceptions.NoUsername'>
+CRITICAL: Closing network session.
+CRITICAL:pywiki:Closing network session.
+VERBOSE:pywiki:Network session closed.
