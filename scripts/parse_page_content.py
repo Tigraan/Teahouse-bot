@@ -117,12 +117,14 @@ def find_section_anchor(inputlistofdict,sectionname):
 	Returns a list of section anchors, corresponding to all unique
 	sections that have the name sectionname. The normal case is for the
 	list to have a single element, but returning a list allows easier
-	testing later.'''
+	testing later.
+	
+	Leading and trailing spaces are removed for the comparison.'''
 	
 	outlist = []
 	
 	for item in inputlistofdict:
-		if sectionname==item['line']:
+		if sectionname.strip()==item['line'].strip():
 			outlist.append(item['anchor'])
 			
 	return outlist

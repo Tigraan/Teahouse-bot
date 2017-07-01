@@ -200,7 +200,7 @@ def main():
 	
 	notiflist = generate_notification_list()
 	
-	notify_all(notiflist,status='test-3')
+	notify_all(notiflist,status='test-2')
 	login.main('-logout') #logout
 	print(whoami())
 if __name__ == '__main__':
