@@ -94,8 +94,11 @@ def my_http_headers():
 def api_call(parameters, endpoint="https://en.wikipedia.org/w/api.php"):
     """Call the API.
 
-    Original script by  Jtmorgan. User-agent added per
+    Original script by  Jtmorgan.
+    User-agent added per
     https://www.mediawiki.org/wiki/API:Main_page#Identifying_your_client
+    Maxlag 5 added per
+    https://www.mediawiki.org/wiki/Manual:Maxlag_parameter
 
     Inputs: parameters is a dict of API call key/value pairs, endpoint is a
     string (the API endpoint)
@@ -115,6 +118,8 @@ def api_call(parameters, endpoint="https://en.wikipedia.org/w/api.php"):
     {'blocks': [{'by': 'Floquenbeam'}, {'by': 'ProcseeBot'}, {'by': 'Widr'}]}
     """
     headers = my_http_headers()
+    if 'maxlag' not in parameters:
+        parameters['maxlag'] = 5
     try:
         call = requests.get(endpoint, params=parameters, headers=headers)
         response = call.json()
