@@ -39,6 +39,7 @@ MA 02110-1301, USA.
 import collections  # Stackexchange code for list utilities requires this
 import datetime  # get current time, convert time string representations
 import logging  # warning messages etc.
+import re  # regular expressions, used to match new section edit summaries
 import requests  # http/https calls (for API calling)
 
 
@@ -146,8 +147,8 @@ def safe_list_diff(listbefore, listafter):
     Doctests:
 
     Standard use:
-    >>> safe_list_diff(['Hello','See you later'],['Hello'])
-    ['See you later']
+    >>> safe_list_diff(['Hello','See you later','Bye'],['Hello'])
+    ['See you later', 'Bye']
 
     Duplicate name: will be scrapped from output and log a warning
     >>> safe_list_diff(['Duplicate','Duplicate','Hello', 'Later'],['Hello'])
@@ -178,7 +179,14 @@ def safe_list_diff(listbefore, listafter):
     setdupes = set(duplicate_values)
 
     # Return threads that were removed and which are not duplicates
-    return list(setbefore - setafter - setdupes)
+    # Ensure we return them in the original order!
+    final_list = []
+    set_to_return = setbefore - setafter - setdupes
+    for tn in listbefore:
+        if tn in set_to_return:
+            final_list.append(tn)
+
+    return final_list
 
 
 def list_matching(ta, threadscreated):
@@ -422,6 +430,413 @@ def isnotifiable(users):
         is_notifiable[u] = True
 
     return is_notifiable
+
+
+# FLAG
+def get_sections_from_api(pageindicator):  # noqa: D301
+    """Get list of sections from specific page revision.
+
+    Adapted from code by User:Jtmorgan:
+    http://paws-public.wmflabs.org/paws-public/User:Jtmorgan/API_calls.ipynb
+
+    Input is a single page indicator, which can be either a string (e.g.
+    "Main Page") in which case the latest revision is used, or an integer, in
+    which case it is treated as a revision number via 'oldid' in
+    https://www.mediawiki.org/wiki/API:Parsing_wikitext
+
+    Doctests:
+    >>> get_sections_from_api(783718598)[:2]==\
+    [{'anchor': 'Request:_World_Cafe',
+    ...  'byteoffset': 3329,
+    ...  'fromtitle': 'Wikipedia:Teahouse',
+    ...  'index': '1',
+    ...  'level': '2',
+    ...  'line': 'Request: World Cafe',
+    ...  'number': '1',
+    ...  'toclevel': 1},
+    ... {'anchor': 'How_to_publish_my_page',
+    ...  'byteoffset': 8292,
+    ...  'fromtitle': 'Wikipedia:Teahouse',
+    ...  'index': '2',
+    ...  'level': '2',
+    ...  'line': 'How to publish my page',
+    ...  'number': '2',
+    ...  'toclevel': 1}
+    ... ]
+    True
+    """
+    # check format of input parameter and act accordingly
+    if isinstance(pageindicator, str):
+        params = {'action': 'parse',
+                  'prop': 'sections',
+                  'format': 'json',
+                  'formatversion': 2,
+                  'page': pageindicator,
+                  }
+    else:
+        params = {'action': 'parse',
+                  'prop': 'sections',
+                  'format': 'json',
+                  'formatversion': 2,
+                  'oldid': pageindicator,
+                  }
+
+    api_call_result = api_call(params)
+
+    # Traverse two levels of the dictionary and return
+    return api_call_result['parse']['sections']
+
+
+def traverse_list_of_sections(inputlistofdict):
+    """Get list of sections from the API output.
+
+    Remove the fluff (data offset etc.) from get_sections_from_api to get only
+    thread names (i.e. the 'line' key).
+    """
+    output_list = []
+
+    for item in inputlistofdict:
+        output_list.append(item['line'])
+
+    return output_list
+
+
+def find_section_anchor(inputlistofdict, sectionname):
+    """Match a section name to the output of get_sections_from_api.
+
+    Input: inputlistofdict comes from get_sections_from_api (list of dict),
+    sectionname is a string (name of a thread).
+
+    Output: a list of section anchors, corresponding to all unique
+    sections that have the name sectionname. The normal case is for the
+    list to have a single element, but returning a list allows easier
+    testing for edge cases later.
+
+    Leading and trailing spaces are removed for the comparison.
+
+    Doctests:
+    >>> find_section_anchor([{'anchor': 'Request:_World_Cafe',
+    ...                       'byteoffset': 3329,
+    ...                       'fromtitle': 'Wikipedia:Teahouse',
+    ...                       'index': '1',
+    ...                       'level': '2',
+    ...                       'line': 'Request: World Cafe',
+    ...                       'number': '1',
+    ...                       'toclevel': 1},
+    ...                      {'anchor': 'How_to_publish_my_page',
+    ...                       'byteoffset': 8292,
+    ...                       'fromtitle': 'Wikipedia:Teahouse',
+    ...                       'index': '2',
+    ...                       'level': '2',
+    ...                       'line': 'How to publish my page',
+    ...                       'number': '2',
+    ...                       'toclevel': 1}
+    ...                      ],
+    ...                     'How to publish my page')
+    ['How_to_publish_my_page']
+    """
+    outlist = []
+
+    for item in inputlistofdict:
+        if sectionname.strip() == item['line'].strip():
+            outlist.append(item['anchor'])
+
+    return outlist
+
+
+def search_archive_links_for_section(links_to_search, sectionnames):
+    """Find links to archived threads.
+
+    This checks the current content of multiple archive links for the
+    desired section names, and ensure only a unique match is accepted
+    for each. Otherwise, failure to find a unique match is logged.
+
+    Input: links_to_search is a list of strings, the names (shortened URL) of
+    archive pages to search; sectionnames is a list of strings, the 'anchor's
+    to match.
+    """
+    # First, query the API for the content of the archive links
+    archive_contents = dict()
+    for archivelink in links_to_search:
+        linkcontent = get_sections_from_api(archivelink)
+        archive_contents[archivelink] = linkcontent  # links as keys, why not
+
+    # Loop over the queried section names
+    out_links = []
+
+    for sn in sectionnames:
+        matches = []  # will hold the matched section(s)
+
+        for arlink in links_to_search:
+            linkmatches = find_section_anchor(archive_contents[arlink], sn)
+            if linkmatches:  # found (at least) one good thread there
+                candidatelink = arlink
+
+            matches += linkmatches  # append current matches to old ones
+
+        if len(matches) == 1:  # the good case: we found exactly one match
+            fullarchivelink = candidatelink + "#" + matches[0]
+            out_links.append(fullarchivelink)
+            continue
+
+        # If we did not continue, we are in the bad case, so we default
+        # the link to an empty string
+        out_links.append('')
+
+        # Log the problem
+        nomatch = 'No thread "{tn}" found in the links "{l}"'
+        morematches = 'Multiple matches for thread "{tn}" in the links "{l}"'
+        if len(matches) == 0:
+            logging.warning(nomatch.format(tn=sn, l=links_to_search))
+        else:  # len(matches)>1
+            logging.warning(morematches.format(tn=sn, l=links_to_search))
+
+    return out_links
+
+
+def sections_removed_by_diff(revid1, revid2):
+    """Get sections removed between two edits.
+
+    Inputs: two revision IDs (integers). You should ensure that both revids
+    refer to consecutive edits on the same page; this is not directly checked.
+    That function makes a call to safe_list_diff, which will probably throw an
+    exception if a different page is used or if the diff is too far apart, but
+    you should not rely on that.
+
+    Output: a list of strings, the names of removed threads.
+
+    Doctests:
+    (Cf. https://en.wikipedia.org/w/index.php?oldid=783715718&diff=783718598)
+    >>> sections_removed_by_diff(783715718,783718598)[:2]
+    ['Red links', 'how to undo a merge made 6 yrs ago']
+    """
+    json1 = get_sections_from_api(revid1)
+    sec_list_1 = traverse_list_of_sections(json1)
+
+    json2 = get_sections_from_api(revid2)
+    sec_list_2 = traverse_list_of_sections(json2)
+
+    set_of_sections_removed = safe_list_diff(sec_list_1, sec_list_2)
+    return set_of_sections_removed
+
+
+# FLAG
+def get_revisions_from_api(pagename, oldtimestamp, newtimestamp,
+                           maxcontinuenumber=0, continuestring=None):
+    """Get all revisions to specific page since a given timestamp.
+
+    Input:
+    - pagename: string, title of the page for which to pull revisions
+    - oldtimestamp, newtimestamp: strings, representing timestamps in Mediawiki
+      format, between which to lookup the revisions
+    Output: a list of dict, each corresponding to a single revision
+
+    That function can also pull multiple pages with the rvcontinue API key.
+    To do so, the function is called recursively with a continuenumber (counter
+    describing the maximum number of page pulls left, to avoid infinite looping
+    while requesting API resources) and a continuestring, cf. rvcontinue in
+    https://www.mediawiki.org/wiki/API:Revisions
+
+    Doctests:
+    >>> get_revisions_from_api('Tiger','2018-03-01T00:00:00Z',
+    ...                        '2018-03-05T00:00:00Z') ==\
+    [{'timestamp': '2018-03-04T15:30:31Z',
+    ...  'parentid': 828307448,
+    ...  'comment': '/* Size */Journal cites: format page range,',
+    ...  'user': 'Rjwilmsi',
+    ...  'revid': 828751877},
+    ... {'timestamp': '2018-03-01T20:11:02Z',
+    ...  'parentid': 828233956,
+    ...  'comment': '/* Reproduction */ hatnote',
+    ...  'user': 'BDD',
+    ...  'revid': 828307448},
+    ... {'timestamp': '2018-03-01T10:08:52Z',
+    ...  'parentid': 828032712,
+    ...  'comment': '/* Taxonomy */ edited ref',
+    ...  'user': 'BhagyaMani',
+    ...  'revid': 828233956}]
+    True
+    """
+    params = {'action': 'query',
+              'prop': 'revisions',
+              'titles': pagename,
+              'format': 'json',
+              'rvprop': 'timestamp|user|comment|ids',
+              'rvdir': 'older',
+              'rvend': oldtimestamp,
+              'rvstart': newtimestamp,
+              'rvlimit': 'max'
+              }
+
+    # Previous call may require to continue a call
+    if continuestring:
+        params['rvcontinue'] = continuestring
+
+    api_call_result = api_call(params)
+
+    # At that point we still have some hierarchy to traverse.
+    # Example output for 'blob': (2 revisions of 'Lion' on en-wp)
+    #     {'batchcomplete': '',
+    #      'query': {'pages': {'36896': {'ns': 0,
+    #                    'pageid': 36896,
+    #                    'revisions': [{'comment': 'we have enough '
+    #                                              'images here',
+    #                                   'parentid': 783432210,
+    #                                   'revid': 783454040,
+    #                                   'timestamp': '2017-06-02T12:07:21Z',
+    #                                   'user': 'LittleJerry'},
+    #                                  {'comment': '/* Cultural '
+    #                                              'significance */ An '
+    #                                              'old advert which '
+    #                                              "depicts the lion's "
+    #                                              'cultural '
+    #                                              'significance in '
+    #                                              '[[England]].',
+    #                                   'parentid': 783139314,
+    #                                   'revid': 783432210,
+    #                                   'timestamp': '2017-06-02T07:38:02Z',
+    #                                   'user': 'Leo1pard'}],
+    #                    'title': 'Lion'}}}}
+
+    tmp = api_call_result['query']['pages']
+    tmp2 = list(tmp.keys())  # ['36896'] in the above example but it can change
+    revlist = tmp[tmp2[0]]['revisions']
+
+    # Check if we need to pull more revisions
+    # If so, recursively call itself and merge results
+    if maxcontinuenumber > 0 and 'batchcomplete' not in api_call_result:
+        # 'batchcomplete' key present = no continue needed
+        # maxcontinuenumber<=0 = we have reached the maximum of continues
+        cs = api_call_result['continue']['rvcontinue']
+        rcl = get_revisions_from_api(pagename, oldtimestamp, newtimestamp,
+                                     maxcontinuenumber=maxcontinuenumber - 1,
+                                     continuestring=cs)
+        full_list = revlist + rcl
+        return full_list
+    else:
+        return revlist
+
+
+def revisions_since_x_days(pagename, ndays, maxcontinuenumber=0):
+    """Get revision data for a given page for the last n days.
+
+    Input:
+    - pagename (string), the name of the page
+    - ndays (int or float): lookup revisions of the last ndays days
+    - maxcontinuenumber (int): recursion limit for API calls
+    Output: a list of dict (cf. get_revisions_from_api).
+    """
+    # Per https://www.mediawiki.org/wiki/API:Revisions, rvstart is newer
+    # than rvend if we list in reverse chronological order
+    # (newer revisions first), i.e. "end" and "start" refer to the list.
+    oldtimestamp = UTC_timestamp_x_days_ago(days_offset=ndays)
+    currenttimestamp = UTC_timestamp_x_days_ago(days_offset=0)
+    revs = get_revisions_from_api(pagename, oldtimestamp, currenttimestamp,
+                                  maxcontinuenumber=maxcontinuenumber)
+
+    return revs
+
+
+def es_created_newsection(editsummary):  # noqa: D301
+    """Parse the given edit summary to see if a new section was created.
+
+    Input: a string of edit summary
+    Output: a dict whose key 'flag' is True if a section was created and False
+    otherwise; additionally, if 'flag' is True, the dict has the key 'name',
+    containing the name of the thread.
+
+    The given string is matched to "/* %s */ new section"; if matched,
+    we assume the corresponding edit created a section named %s.
+
+    Doctests:
+    >>> es_created_newsection(r'/* Waiting for Godot */ new section') ==\
+    {'flag': True, 'name': 'Waiting for Godot'}
+    True
+    """
+    pattern = re.compile(r'(\/\* )(.*)( \*\/ new section)')
+    match = pattern.match(editsummary)
+    # Note: using pattern.search will pick up e.g. Sinebot's edit summaries of
+    # "Signing comment by Foo - "/* Bar */: new section""
+    # Instead, pattern.match enforces a match at the start of the string
+    if match:
+        output = {'flag': True,
+                  'name': match.group(2),
+                  }
+    else:
+        output = {'flag': False}
+    return output
+
+
+def newsections_at_teahouse(ndays=10, thname='Wikipedia:Teahouse',
+                            maxcontinuenumber=0):
+    """Get 'new section' creations at Teahouse in the last few days.
+
+    Optional arguments:
+    - ndays (10): (int or float) timeframe in days of revision to pull
+    - thname: (string) name of the page whose revisions to pull
+    - maxcontinuenumber: (int) recursion limit for API calls
+    """
+    rev_table = revisions_since_x_days(thname, ndays,
+                                       maxcontinuenumber=maxcontinuenumber)
+    output = []
+    for rev in rev_table:
+        editsummary = rev['comment']
+        newsection_created = es_created_newsection(editsummary)
+        if newsection_created['flag']:
+            tosave = {'revid': rev['revid'],
+                      'name': newsection_created['name'],
+                      'user': rev['user'],
+                      }
+            output.append(tosave)
+
+    return output
+
+
+def last_archival_edit(maxdays=1, thname='Wikipedia:Teahouse',
+                       archiver='Lowercase sigmabot III'):
+    """Parse page history for last archival edit.
+
+    Input:
+    - maxdays (int) the timeframe in days to look for an archival edit
+    - thname (string) title of the page to look at
+    - archiver (string) username of the archival bot
+
+    Output: dict describing the last archival edit.
+    """
+    rev_table = revisions_since_x_days(thname, maxdays)
+    found_flag = False
+    for rev in rev_table:
+        if rev['user'] == archiver:  # we found an archival edit
+            es = rev['comment']  # extract edit summary
+            # Determine archive locations from edit summary.
+            # Beware! The edit summary may contain multiple wikilinks.
+            # See for instance
+            # https://en.wikipedia.org/w/index.php?title=Wikipedia%3ATeahouse&type=revision&diff=783570477&oldid=783564581
+            # We need to match non-greedily and find all such links.
+            pattern = r'(\[\[.*?\]\])'
+            links = re.findall(pattern, es)
+
+            if not links:  # sanity check that at least one match was found
+                raise ValueError('Archival edit summary does not contain'
+                                 + 'any wikilink.', es)
+
+            # strip brackets in links
+            strippedlinks = [l[2:-2] for l in links]
+
+            # save relevant edit information
+            output = {'after': rev['revid'],
+                      'before': rev['parentid'],
+                      'links': strippedlinks,
+                      'es': es,				 # for debugging purposes
+                      'archiver': archiver,  # same (not used as of 2018-03-18)
+                      }
+            found_flag = True
+            break
+    if not found_flag:
+        raise ValueError('No edit by {arc} '.format(arc=archiver)
+                         + 'found in the last {n} days'.format(n=maxdays),
+                         rev_table)
+    return output
 
 
 if __name__ == "__main__":
