@@ -43,6 +43,27 @@ import re  # regular expressions, used to match new section edit summaries
 import requests  # http/https calls (for API calling)
 
 
+# Pywikibot stuff. Importing the PWB modules proved a bit complex, see
+# https://en.wikipedia.org/wiki/Wikipedia:Bots/Requests_for_approval/Tigraan-testbot
+# Directory "core" from https://gerrit.wikimedia.org/r/pywikibot/core.git
+# must be available on the Python path (maybe we should rename it, BTW...),
+# but *also* (submodule) pywikibot
+try:
+    from core import pywikibot
+    from core.scripts import add_text
+    from core.scripts import login
+except ImportError:
+    import os
+    import sys
+    path_to_PWB = os.path.expandvars('$HOME/.local/lib/python3.5/'
+                                     + 'site-packages/core')
+    sys.path.append(path_to_PWB)  # add path to pwb to find the modules
+
+    from core import pywikibot
+    from core.scripts import add_text
+    from core.scripts import login
+
+
 def my_http_headers():
     """Give default user agent and other headers of the script.
 
@@ -432,7 +453,6 @@ def isnotifiable(users):
     return is_notifiable
 
 
-# FLAG
 def get_sections_from_api(pageindicator):  # noqa: D301
     """Get list of sections from specific page revision.
 
@@ -504,7 +524,7 @@ def traverse_list_of_sections(inputlistofdict):
 def find_section_anchor(inputlistofdict, sectionname):
     """Match a section name to the output of get_sections_from_api.
 
-    Input: inputlistofdict comes from get_sections_from_api (list of dict),
+    Input: inputlistofdict comes from get_sections_from_api (list of dict),
     sectionname is a string (name of a thread).
 
     Output: a list of section anchors, corresponding to all unique
@@ -544,7 +564,7 @@ def find_section_anchor(inputlistofdict, sectionname):
     return outlist
 
 
-def search_archive_links_for_section(links_to_search, sectionnames):
+def search_archives_for_section(links_to_search, sectionnames):
     """Find links to archived threads.
 
     This checks the current content of multiple archive links for the
@@ -554,6 +574,12 @@ def search_archive_links_for_section(links_to_search, sectionnames):
     Input: links_to_search is a list of strings, the names (shortened URL) of
     archive pages to search; sectionnames is a list of strings, the 'anchor's
     to match.
+
+    Doctests: TODO
+    >>> search_archives_for_section(['Wikipedia:Teahouse/Questions/Archive_98',
+    ...                              'Wikipedia:Teahouse/Questions/Archive_99'
+    ...                              ],['Picture problem', 'Blog as reference?'])  # noqa: E501
+    ['Wikipedia:Teahouse/Questions/Archive_98#Picture_problem', 'Wikipedia:Teahouse/Questions/Archive_99#Blog_as_reference?']
     """
     # First, query the API for the content of the archive links
     archive_contents = dict()
@@ -561,6 +587,7 @@ def search_archive_links_for_section(links_to_search, sectionnames):
         linkcontent = get_sections_from_api(archivelink)
         archive_contents[archivelink] = linkcontent  # links as keys, why not
 
+        # print(linkcontent)
     # Loop over the queried section names
     out_links = []
 
@@ -598,7 +625,7 @@ def sections_removed_by_diff(revid1, revid2):
     """Get sections removed between two edits.
 
     Inputs: two revision IDs (integers). You should ensure that both revids
-    refer to consecutive edits on the same page; this is not directly checked.
+    refer to consecutive edits on the same page; this is not directly checked.
     That function makes a call to safe_list_diff, which will probably throw an
     exception if a different page is used or if the diff is too far apart, but
     you should not rely on that.
@@ -620,21 +647,20 @@ def sections_removed_by_diff(revid1, revid2):
     return set_of_sections_removed
 
 
-# FLAG
 def get_revisions_from_api(pagename, oldtimestamp, newtimestamp,
-                           maxcontinuenumber=0, continuestring=None):
+                           maxcontinuenumber=0, continuestring=None):  # noqa: D301
     """Get all revisions to specific page since a given timestamp.
 
     Input:
-    - pagename: string, title of the page for which to pull revisions
+    - pagename: string, title of the page for which to pull revisions
     - oldtimestamp, newtimestamp: strings, representing timestamps in Mediawiki
       format, between which to lookup the revisions
     Output: a list of dict, each corresponding to a single revision
 
-    That function can also pull multiple pages with the rvcontinue API key.
+    That function can also pull multiple pages with the rvcontinue API key.
     To do so, the function is called recursively with a continuenumber (counter
     describing the maximum number of page pulls left, to avoid infinite looping
-    while requesting API resources) and a continuestring, cf. rvcontinue in
+    while requesting API resources) and a continuestring, cf. rvcontinue in
     https://www.mediawiki.org/wiki/API:Revisions
 
     Doctests:
@@ -722,8 +748,8 @@ def revisions_since_x_days(pagename, ndays, maxcontinuenumber=0):
 
     Input:
     - pagename (string), the name of the page
-    - ndays (int or float): lookup revisions of the last ndays days
-    - maxcontinuenumber (int): recursion limit for API calls
+    - ndays (int or float): lookup revisions of the last ndays days
+    - maxcontinuenumber (int): recursion limit for API calls
     Output: a list of dict (cf. get_revisions_from_api).
     """
     # Per https://www.mediawiki.org/wiki/API:Revisions, rvstart is newer
@@ -740,7 +766,7 @@ def revisions_since_x_days(pagename, ndays, maxcontinuenumber=0):
 def es_created_newsection(editsummary):  # noqa: D301
     """Parse the given edit summary to see if a new section was created.
 
-    Input: a string of edit summary
+    Input: a string of edit summary
     Output: a dict whose key 'flag' is True if a section was created and False
     otherwise; additionally, if 'flag' is True, the dict has the key 'name',
     containing the name of the thread.
@@ -827,7 +853,7 @@ def last_archival_edit(maxdays=1, thname='Wikipedia:Teahouse',
             output = {'after': rev['revid'],
                       'before': rev['parentid'],
                       'links': strippedlinks,
-                      'es': es,				 # for debugging purposes
+                      'es': es,                 # for debugging purposes
                       'archiver': archiver,  # same (not used as of 2018-03-18)
                       }
             found_flag = True
@@ -839,9 +865,211 @@ def last_archival_edit(maxdays=1, thname='Wikipedia:Teahouse',
     return output
 
 
+# FLAG
+def generate_notification_list():
+    """Make list of notifications to make.
+
+    This function makes all the API read calls necessary to determine which
+    threads have been last archived, which users started them, and whether
+    those users are eligible to receive a notification.
+
+    The output is a list of dict, each containing the keys:
+    - 'user'    - username of thread started
+    - 'tn'      - thread name
+    - 'invalid' - whether a notification can be sent
+    Additionally, it can also contain:
+    - 'archivelink' - a link to the archived thread (with anchor), if found
+    - 'reason'      - if 'invalid' is True, explains why
+    """
+    # Get last archival edit
+    lae = last_archival_edit()
+    idbefore = lae['before']
+    idafter = lae['after']
+    # Sections from last archival edit
+    archived_sections = sections_removed_by_diff(idbefore, idafter)
+
+    # New section creations in recent days from page history
+    maxpagestopull = 5
+    nscreated = newsections_at_teahouse(maxcontinuenumber=maxpagestopull)
+
+    # List of threads that were archived in last archival edit, which
+    # could be matched to their creation in the last few days
+    thread_matched = list_matching(archived_sections, nscreated)
+    thread_matched_names = [thread['name'] for thread in thread_matched]
+    thread_matched_users = [thread['user'] for thread in thread_matched]
+
+    # For those, try and recover the corresponding archival link
+    # (including anchor)
+    possible_archive_links = lae['links']
+    list_of_archive_links = search_archives_for_section(possible_archive_links,
+                                                        thread_matched_names)
+
+    # Check if user can be notified
+    is_notifiable = isnotifiable(thread_matched_users)
+
+    # Generate notification list
+    N = len(list_of_archive_links)
+    notification_list = list()
+    for i in range(N):
+        username = thread_matched_users[i]
+        tn = thread_matched_names[i]
+        al = list_of_archive_links[i]
+
+        notif = {'user': username,
+                 'thread': tn,
+                 'invalid': False,
+                 }
+
+        if al:
+            notif['archivelink'] = al
+        else:
+            # skip if the archive link is empty, i.e. it was not found
+            # previously (such an event was logged)
+            notif['invalid'] = True
+            notif['reason'] = 'archive link not found'
+
+        if not is_notifiable[username]:
+            notif['invalid'] = True
+            notif['reason'] = 'user is not notifiable'
+
+        notification_list.append(notif)
+
+    return notification_list
+
+
+def notify(user, argstr, testlvl):
+    """Post archival notification.
+
+    Input:
+    - user: (string) username, will post to User talk:<user>
+    - argstr: (string) contains arguments to pass to template
+    - testlvl: (int) 0 for production, >=1 for various test levels
+
+    No output to stdout, since this will cause posts on WP.
+    """
+    if testlvl == 1:
+        site = pywikibot.Site('test', 'test')
+        page = pywikibot.Page(site, 'User talk:Tigraan-testbot/THA log')
+        sn = 'Notification intended for [[:en:User talk:' + user + ']]'
+        es = 'Notification intended for [[:en:User talk:' + user + ']]'
+
+    elif testlvl == 2:
+        site = pywikibot.Site('en', 'wikipedia')
+        page = pywikibot.Page(site, 'User talk:Tigraan-testbot/THA log')
+        sn = 'Notification intended for [[:en:User talk:' + user + ']]'
+        es = 'Notification intended for [[:en:User talk:' + user + ']]'
+
+    elif testlvl == 3:
+        site = pywikibot.Site('en', 'wikipedia')
+        page = pywikibot.Page(site, 'User talk:' + user)
+        sn = 'Your thread has been archived'
+        es = 'Automated notification of thread archival (test run)'
+
+    elif testlvl == 0:
+        # Production code goes here
+        if False:  # remove this "test" once you go in production
+            site = pywikibot.Site('en', 'wikipedia')
+            page = pywikibot.Page(site, 'User talk:' + user)
+            sn = 'Your thread has been archived'
+            es = 'Your thread has been archived'
+
+    # 0 for production, all the rest creates a "this is in test phase" comment
+    if testlvl > 0:
+        test_comment = "</br><small>This functionality is currently under "\
+                       + "test. If you received this notification by error, "\
+                       + "please [[User talk:Tigraan|notify the bot's"\
+                       + " maintainer]].</small>"
+        text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|'\
+               + argstr + '|additionaltext=' + test_comment + '}}'
+    else:
+        text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|'\
+               + argstr + '}}'
+
+    post_text = '=={sn}==\n{tta}'.format(sn=sn, tta=text)
+
+    # Caution: will not ask for confirmation!
+    add_text.add_text(page, post_text, summary=es,
+                      always=True, up=False, create=True)
+
+
+def notify_all(notification_list, status,
+               archive_from='[[Wikipedia:Teahouse]]',
+               botname='Tigraan-testbot'):
+    """Execute notification list.
+
+    Input:
+    - notification_list: cf. generate_notification_list for format
+    - status: 'offlinetest' for printing to stdout, 'test-X' for various
+              testing levels, 'prod' for production use
+    - archive_from: original page of the thread (only for notification
+                    formatting, not actually checked)
+    - botname: name of the bot who leaves the notification
+
+    No output to stdout, but this will cause posts on WP.
+    """
+    formatspec = 'pagelinked={pl}|threadname={tn}|archivelink={al}|'\
+                 + 'botname={bn}|editorname={en}'
+    warnmsg = 'Thread "{thread}" by user {user} will not cause notification:'\
+              + ' {reason}.'
+    for item in notification_list:
+        user = item['user']
+        thread = item['thread']
+
+        if item['invalid']:
+            logging.warning(warnmsg.format(thread=thread, user=user,
+                                           reason=item['reason']))
+            continue
+        archivelink = item['archivelink']
+
+        argstr = formatspec.format(pl=archive_from, tn=thread, al=archivelink,
+                                   bn=botname, en=user)
+
+        if status == 'offlinetest':
+            print('[[User talk:' + user + ']] -> {{subst:User:Tigraan-testbot/'
+                  + 'Teahouse archival notification|' + argstr + '}}')
+        elif status == 'test-1':
+            notify(user, argstr, testlvl=1)
+        elif status == 'test-2':
+            notify(user, argstr, testlvl=2)
+        elif status == 'test-3':
+            notify(user, argstr, testlvl=3)
+        elif status == 'prod':
+            notify(user, argstr, testlvl=0)
+        else:
+            raise ValueError('Option was not understood.', status)
+
+
+def main():
+    """Run main procedure.
+
+    Run once the full procedure:
+    - find last archival edit and extract archived threads
+    - lookup in the page history who created those threads
+    - check for each user whether they can be sent a notification
+    - send notifications for whoever can receive them
+
+    Before doing all this, log in (as Tigraan-testbot: requires user input),
+    and log out afterwards, by PWB commands.
+    """
+    # log in
+    login.main()  # login as Tigraan-testbot
+    logging.info('Currently logged as:' + str(whoami()))
+
+    notiflist = generate_notification_list()
+
+    notify_all(notiflist, status='offlinetest')
+    login.main('-logout')  # logout
+
 if __name__ == "__main__":
     # Unit test run. See
     # https://docs.python.org/3/library/doctest.html#simple-usage-checking-examples-in-docstrings
     import doctest
     logging.basicConfig(level=logging.ERROR)  # ignore logging warnings
-    doctest.testmod()
+    (failure_count, test_count) = doctest.testmod()
+
+    if failure_count > 0:
+        logging.error("I failed at least one unit test, and will stop here.")
+    else:
+        logging.basicConfig(level=logging.INFO)
+        logging.info("Unit tests passed. Executing the full procedure...")
+        main()
