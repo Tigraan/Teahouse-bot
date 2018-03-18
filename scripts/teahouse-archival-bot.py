@@ -6,7 +6,7 @@ Rewritten on 2018-03-18 (Tigraan) for multiple reasons.
 
 First, to comply with some sane code guidelines:
 - enforced by Flake8 linter (http://flake8.pycqa.org/en/latest/) on my machine
-- uses the GPSG (https://google.github.io/styleguide/pyguide.html)
+- uses the GPSG (https://google.github.io/styleguide/pyguide.html)
 
 Second, for a bit of minor refactoring here and there. Outside behaviour should
 not be changed although internally-passed types might. Also, let's try to put
@@ -15,6 +15,11 @@ modules.
 
 Third, to add automated unit tests via the doctest module:
 https://docs.python.org/3/library/doctest.html#doctest.testmod
+
+We ignore D301 ("a docstring that contains line continuations should be marked
+raw") in a few places because doing so breaks the line continuation by
+backslash when running the doctest. This is indicated by # noqa: D301 comments.
+
 
 License:
 
@@ -71,7 +76,7 @@ def api_call(parameters, endpoint="https://en.wikipedia.org/w/api.php"):
     https://www.mediawiki.org/wiki/API:Main_page#Identifying_your_client
 
     Inputs: parameters is a dict of API call key/value pairs, endpoint is a
-    string (the API endpoint)
+    string (the API endpoint)
     Output: server response in dict format (converted from JSON).
 
     Doctests:
@@ -132,7 +137,7 @@ def safe_list_diff(listbefore, listafter):
     Also, it will raise an AssertionError if the second list is not
     included in the first one (which is expected for an archival diff).
 
-    Warning: because a set diff is used, no order is guaranteed in the output
+    Warning: because a set diff is used, no order is guaranteed in the output
     list.
 
     Inputs: lists of strings (names of the threads from page history)
@@ -232,8 +237,196 @@ def list_matching(ta, threadscreated):
     return output
 
 
+def get_user_info(userlist, infotoget=['groups', 'editcount']):  # noqa: D301
+    """Query the API for user info.
+
+    Input:
+    - userlist is a list of strings, each string being a username
+    - infotoget is the list of user info to return, cf. API documentation
+    Output: dict whose keys are exactly the strings from userinfo, each entry
+    containing the user information returned by the API for said user.
+
+    Doctests:
+    >>> get_user_info(['Jimbo Wales','Sandbox for user warnings']
+    ...              ).keys() == {'Jimbo Wales','Sandbox for user warnings'}
+    True
+    >>> get_user_info(['Jimbo Wales'])['Jimbo Wales']['groups'] ==\
+    ['checkuser','founder','oversight','sysop','*','user','autoconfirmed']
+    True
+    >>> get_user_info(['Nonexisting username'])==\
+    {'Nonexisting username': {'missing': True, 'name': 'Nonexisting username'}}
+    True
+    """
+    API_user_string = '|'.join(userlist)
+    API_info_string = '|'.join(infotoget)
+
+    params = {'action': 'query',
+              'list': 'users',
+              'ususers': API_user_string,
+              'usprop': API_info_string,
+              'format': 'json',
+              'formatversion': 2,
+              }
+
+    rawoutput = api_call(params)
+    # Example (with users Tigraan, Jimbo Wales, Danadan and a dummy) for the
+    # API raw output:
+    # {'batchcomplete': True,
+    # 'query': {'users': [{'invalid': True, 'name': '12.54.29.3'},
+    #                  {'editcount': 3529,
+    #                   'groups': ['extendedconfirmed',
+    #                              '*',
+    #                              'user',
+    #                              'autoconfirmed'],
+    #                   'name': 'Tigraan',
+    #                   'userid': 18899359},
+    #                  {'editcount': 13105,
+    #                   'groups': ['checkuser',
+    #                              'founder',
+    #                              'oversight',
+    #                              'sysop',
+    #                              '*',
+    #                              'user',
+    #                              'autoconfirmed'],
+    #                   'name': 'Jimbo Wales',
+    #                   'userid': 24},
+    #                  {'blockedby': 'Dougweller',
+    #                   'blockedbyid': 1304678,
+    #                   'blockedtimestamp': '2009-07-02T08:37:58Z',
+    #                   'blockexpiry': 'infinity',
+    #                   'blockid': 1505586,
+    #                   'blockreason':'[[WP:Spam|Spamming]] links to external '
+    #                                 'sites: disguising links as news links, '
+    #                                 'using multiple identities',
+    #                   'editcount': 2,
+    #                   'groups': ['*', 'user'],
+    #                   'name': 'Dananadan',
+    #                   'userid': 9977555},
+    #                  {'missing': True,
+    #                   'name': 'This username does not exist'}]}}
+
+    # traverse the first two levels
+    resultlist = rawoutput['query']['users']
+
+    # transform into a dictionary whose keys are the usernames
+    resultdict = dict()
+    for entry in resultlist:
+        resultdict[entry['name']] = entry
+    return resultdict
+
+
+def get_block_info(userlist):
+    """Query the API for block info.
+
+    Input: a list of strings, each string being a username.
+    Output: a dictionary of bool such that dict[user] is True if the user
+    currently (1) exists and (2) is blocked; dict keys match the input.
+
+    Although get_user_info could be used to check for a current block on logged
+    accounts, it is not possible on IP accounts, hence the need for this other
+    subfunction. See also
+    - https://www.mediawiki.org/wiki/API:Users
+    - https://www.mediawiki.org/w/index.php?title=Topic:Tspl9p7oiyzzm19w
+
+    Doctests:
+    >>> get_block_info(['Tigraan', '85.17.92.13', 'Nonexisting username']
+    ...                ) == {'Tigraan': False,
+    ...                      '85.17.92.13': True,
+    ...                      'Nonexisting username': False}
+    True
+    """
+    user_string = '|'.join(userlist)
+
+    params = {'action': 'query',
+              'list': 'blocks',
+              'bkusers': user_string,
+              'bkprop': 'user',
+              'format': 'json',
+              'formatversion': 2,
+              }
+
+    rawoutput = api_call(params)
+
+    # traverse the first two levels
+    resultlist = rawoutput['query']['blocks']
+
+    # transform result into a dict of bool
+    resultdict = dict()
+    for user in userlist:
+        resultdict[user] = ({'user': user} in resultlist)
+    return resultdict
+
+
+def isnotifiable(users):
+    """Check if specified users can be notified.
+
+    Input: list of strings (usernames).
+    Output is a dict of booleans, keys match input (True = can be notified).
+
+    This takes care of the policy aspect (who gets notified, in general)
+    but NOT of bot exclusion compliance, which must be handled elsewhere.
+    For instance pywikibot's scripts should take care of it, per
+    https://en.wikipedia.org/wiki/Template:Bots#Implementation
+
+    Current policy is to notify anyone regardless of 'age' (edit count) or
+    groups (autoconfirmed etc.) but to not notify blocked users.
+
+    Doctests:
+    >>> isnotifiable(['Tigraan', '85.17.92.13', 'Nonexisting username']
+    ...              ) == {'Tigraan': True,
+    ...                    '85.17.92.13': False,
+    ...                    'Nonexisting username': False}
+    True
+    """
+    # Block information
+    isblocked = get_block_info(users)
+
+    # Other general user information
+    # WARNING! For IP editors, all we get is the 'invalid' key.
+    # Do not rely on this to get (e.g.) the edit count of an IP editor!
+    userinfo = get_user_info(users, infotoget=['groups'])
+
+    is_notifiable = dict()
+    no_notif_str = 'No notification will be sent.'
+    unknown_user_str = 'User "{un}" does not seem to exist. ' + no_notif_str
+    blocked_user_str = 'User "{un}" is currently blocked. ' + no_notif_str
+    for u in users:
+        info = userinfo[u]
+        # NOTIFICATION POLICY APPLIES HERE
+
+        # If username does not exist (renamed user?) do not notify
+        if 'missing' in info:
+            is_notifiable[u] = False
+            logging.info(unknown_user_str.format(un=u))
+            continue
+
+        # Do not notify currently-blocked users
+        if isblocked[u]:
+            is_notifiable[u] = False
+            logging.info(blocked_user_str.format(un=u))
+            continue
+
+        # # Further policy options, inactive as of 2018-03-18
+        # # Do not notify users with more than x edits
+        # maxedits = 1000
+        # if info['editcount']>maxedits:
+        #     is_notifiable[u] = False
+        #     logging.info('User "{un}" performed more than {nedits} edits and will not be notified.'.format(un=u,nedits=maxedits))  # noqa: E501
+        #
+        # # Do not notify users with the ECP flag
+        # if 'extendedconfirmed' in info['groups']:
+        #     is_notifiable[u] = False
+        #     logging.info('User "{un}" is extended confirmed and will not be notified.'.format(un=u))  # noqa: E501
+
+        # By default, we should notify
+        is_notifiable[u] = True
+
+    return is_notifiable
+
+
 if __name__ == "__main__":
     # Unit test run. See
     # https://docs.python.org/3/library/doctest.html#simple-usage-checking-examples-in-docstrings
     import doctest
+    logging.basicConfig(level=logging.ERROR)  # ignore logging warnings
     doctest.testmod()
