@@ -39,29 +39,38 @@ MA 02110-1301, USA.
 import collections  # Stackexchange code for list utilities requires this
 import datetime  # get current time, convert time string representations
 import logging  # warning messages etc.
+import os  # directories handling
 import re  # regular expressions, used to match new section edit summaries
 import requests  # http/https calls (for API calling)
 
 
 # Pywikibot stuff. Importing the PWB modules proved a bit complex, see
 # https://en.wikipedia.org/wiki/Wikipedia:Bots/Requests_for_approval/Tigraan-testbot
-# Directory "core" from https://gerrit.wikimedia.org/r/pywikibot/core.git
-# must be available on the Python path (maybe we should rename it, BTW...),
-# but *also* (submodule) pywikibot
-try:
-    from core import pywikibot
-    from core.scripts import add_text
-    from core.scripts import login
-except ImportError:
-    import os
-    import sys
-    path_to_PWB = os.path.expandvars('$HOME/.local/lib/python3.5/'
-                                     + 'site-packages/core')
-    sys.path.append(path_to_PWB)  # add path to pwb to find the modules
+if os.path.expandvars('$HOME') == '/data/project/muninnbot':
+    # We are on Toolforge
+    import pywikibot
+    from scripts import add_text
+    from scripts import login
+else:
+    # We run locally (from my machine)
+    # Ugly hack - I should fix imports someday
 
-    from core import pywikibot
-    from core.scripts import add_text
-    from core.scripts import login
+    # Directory "core" from https://gerrit.wikimedia.org/r/pywikibot/core.git
+    # must be available on the Python path (maybe we should rename it, BTW...),
+    # but *also* (submodule) pywikibot
+    try:
+        from core import pywikibot
+        from core.scripts import add_text
+        from core.scripts import login
+    except ImportError:
+        import sys
+        path_to_PWB = os.path.expandvars('$HOME/.local/lib/python3.5/'
+                                         + 'site-packages/core')
+        sys.path.append(path_to_PWB)  # add path to pwb to find the modules
+
+        from core import pywikibot
+        from core.scripts import add_text
+        from core.scripts import login
 
 
 def my_http_headers():
