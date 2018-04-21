@@ -818,7 +818,7 @@ def notify(user, argstr, testlvl):
 
     elif testlvl == 2:
         site = pywikibot.Site('en', 'wikipedia')
-        page = pywikibot.Page(site, 'User talk:Munninbot/THA log')
+        page = pywikibot.Page(site, 'User talk:Muninnbot/THA log')
         sn = 'Notification intended for [[:en:User talk:' + user + ']]'
         es = 'Notification intended for [[:en:User talk:' + user + ']]'
 
