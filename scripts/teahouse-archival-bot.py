@@ -1081,16 +1081,14 @@ def logintest():
     logging.info('Currently logged as:' + str(whoami()))
 
 if __name__ == "__main__":
+
+    logging.basicConfig(level=logging.DEBUG)
+    logintest()
+
     # Unit test run. See
     # https://docs.python.org/3/library/doctest.html#simple-usage-checking-examples-in-docstrings
-    import doctest
-    logging.basicConfig(level=logging.ERROR)  # ignore logging warnings
-
-
-    logintest()
-    return
-
-    #
+    # logging.basicConfig(level=logging.ERROR)  # ignore logging warnings
+    # import doctest
     # (failure_count, test_count) = doctest.testmod()
     #
     # if failure_count > 0:
