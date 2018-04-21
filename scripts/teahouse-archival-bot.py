@@ -1074,11 +1074,23 @@ def main():
     notify_all(notiflist, status='offlinetest')
     login.main('-logout')  # logout
 
+def logintest():
+    """Simple test to see if we can log under the correct account."""
+    s = pywikibot.Site()
+    s.login()
+    logging.info('Currently logged as:' + str(whoami()))
+
 if __name__ == "__main__":
     # Unit test run. See
     # https://docs.python.org/3/library/doctest.html#simple-usage-checking-examples-in-docstrings
     import doctest
     logging.basicConfig(level=logging.ERROR)  # ignore logging warnings
+
+
+    logintest()
+    return
+
+
     (failure_count, test_count) = doctest.testmod()
 
     if failure_count > 0:
