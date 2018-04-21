@@ -1090,12 +1090,12 @@ if __name__ == "__main__":
     logintest()
     return
 
-
-    (failure_count, test_count) = doctest.testmod()
-
-    if failure_count > 0:
-        logging.error("I failed at least one unit test, and will stop here.")
-    else:
-        logging.basicConfig(level=logging.INFO)
-        logging.info("Unit tests passed. Executing the full procedure...")
-        main()
+    #
+    # (failure_count, test_count) = doctest.testmod()
+    #
+    # if failure_count > 0:
+    #     logging.error("I failed at least one unit test, and will stop here.")
+    # else:
+    #     logging.basicConfig(level=logging.INFO)
+    #     logging.info("Unit tests passed. Executing the full procedure...")
+    #     main()
