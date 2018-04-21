@@ -44,61 +44,295 @@ import collections  # Stackexchange code for list utilities requires this
 import datetime  # get current time, convert time string representations
 import logging  # warning messages etc.
 import re  # regular expressions, used to match new section edit summaries
-import requests  # http/https calls (for API calling)
 
 # Pywikibot and associated imports
 import pywikibot
 from scripts import add_text
-from scripts import login
 
 
-def api_call(parameters, endpoint="https://en.wikipedia.org/w/api.php"):
-    """Call the API.
+# Commands that directly call the API using PWB
+def manual_API_call(site, **kwargs):  # noqa: D301
+    """Make API request by giving parameters 'by hand'.
 
-    Original script by  Jtmorgan.
-    User-agent added per
-    https://www.mediawiki.org/wiki/API:Main_page#Identifying_your_client
-    Maxlag 5 added per
-    https://www.mediawiki.org/wiki/Manual:Maxlag_parameter
-
-    Inputs: parameters is a dict of API call key/value pairs, endpoint is a
-    string (the API endpoint)
-    Output: server response in dict format (converted from JSON).
+    Input:
+    - site is an APISite, e.g. obtained by pywikibot.Site(); PWB should be able
+    to read pages there (i.e. be logged with the appropriate permissions if
+    needed)
+    - **kwargs: will be passed unmodified to the API for Site
 
     Doctests:
-    >>> api_call({'action': 'query',
-    ...           'list': 'blocks',
-    ...           'bkprop': 'user',
-    ...           'bkstart': '2018-03-03T23:00:00Z',
-    ...           'bkend': '2018-03-03T22:00:00Z',
-    ...           'bkdir': 'older',
-    ...           'bkprop': 'by',
-    ...           'format': 'json',
-    ...           'formatversion': 2,
-    ...           })['query']
-    {'blocks': [{'by': 'Floquenbeam'}, {'by': 'ProcseeBot'}, {'by': 'Widr'}]}
+    >>> manual_API_call(pywikibot.Site(), action='parse', prop='sections',\
+            format='json', formatversion=2,\
+            oldid=837538913)['parse']['sections'][:2] ==\
+                [{'index': '1', 'anchor': 'Interesting_facts', 'toclevel': 1,\
+                  'line': 'Interesting facts','byteoffset': 3282,'level': '2',\
+                  'number': '1', 'fromtitle': 'Wikipedia:Teahouse'},\
+                 {'index': '2', 'anchor': 'oclc', 'toclevel': 1,\
+                  'line': 'oclc', 'byteoffset': 9831, 'number': '2',\
+                  'fromtitle': 'Wikipedia:Teahouse', 'level': '2'}]
+    True
     """
-    headers = my_http_headers()
-    if 'maxlag' not in parameters:
-        parameters['maxlag'] = 5
-    try:
-        call = requests.get(endpoint, params=parameters, headers=headers)
-        response = call.json()
-    except requests.exceptions.RequestException as e:
-        logging.error("No useful response was given by the API.\n{}".format(e))
-        logging.info("Parameters for failed call: {}".format(parameters))
-        response = None
-    return response
+    request = site._simple_request(**kwargs)
+    return request.submit()
 
 
-def whoami():
+def whoami(site=pywikibot.Site()):
     """Check the currently logged-in user via the API."""
-    rawoutput = api_call({'action': 'query',
-                          'meta': 'userinfo',
-                          'format': 'json',
-                          'formatversion': 2,
-                          })
-    return rawoutput['query']['userinfo']
+    return site.getuserinfo()['name']
+
+
+def get_user_info(userlist, site=pywikibot.Site()):  # noqa:D301
+    """Query the API for user info.
+
+    Input:
+    - userlist is a list of strings, each string being a username
+
+    Output:
+    - dict whose keys match the provided userlist; each entry contains user
+    information as given by the API
+
+    Doctests:
+    >>> get_user_info(['Jimbo Wales','Sandbox for user warnings']
+    ...              ).keys() == {'Jimbo Wales','Sandbox for user warnings'}
+    True
+    >>> get_user_info(['Jimbo Wales'])['Jimbo Wales']['registration']
+    '2001-03-27T20:47:31Z'
+    >>> get_user_info(['Nonexisting username'])==\
+    {'Nonexisting username': {'missing': '', 'name': 'Nonexisting username'}}
+    True
+    """
+
+    usersgen = site.users(userlist)
+
+    # transform into a dictionary whose keys are the usernames
+    resultdict = dict()
+    for entry in usersgen:
+        resultdict[entry['name']] = entry
+    return resultdict
+
+
+def get_block_info(userlist, site=pywikibot.Site()):
+    """Query the API for block info.
+
+    Input: a list of strings, each string being a username.
+    Output: a dictionary of bool such that dict[user] is True if the user
+    currently (1) exists and (2) is blocked; dict keys match the input.
+
+    Although get_user_info could be used to check for a current block on logged
+    accounts, it is not possible on IP accounts, hence the need for this other
+    subfunction. See also
+    - https://www.mediawiki.org/wiki/API:Users
+    - https://www.mediawiki.org/w/index.php?title=Topic:Tspl9p7oiyzzm19w
+
+    Doctests:
+    >>> get_block_info(['Tigraan', '85.17.92.13', 'Nonexisting username']
+    ...                ) == {'Tigraan': False,
+    ...                      '85.17.92.13': True,
+    ...                      'Nonexisting username': False}
+    True
+    """
+    blockgen = site.blocks(users=userlist)
+
+    # transform result into a dict of bool
+    resultdict = dict()
+    for user in userlist:
+        resultdict[user] = False
+    for block in blockgen:
+        resultdict[block['user']] = True
+
+    return resultdict
+
+
+def get_sections_from_revid(pageindicator, site=pywikibot.Site()):  # noqa: D301
+    """Get list of sections from specific page revision.
+
+    Input:
+    - site: 
+    - pageindicator: indicates which page to use.
+        - if a str, uses the current revision of the page with that title
+        - if an int, treated as a revision number via 'oldid' in
+          https://www.mediawiki.org/wiki/API:Parsing_wikitext
+
+    Doctests:
+    >>> get_sections_from_revid(783718598)[:2]==\
+    [{'anchor': 'Request:_World_Cafe',
+    ...  'byteoffset': 3329,
+    ...  'fromtitle': 'Wikipedia:Teahouse',
+    ...  'index': '1',
+    ...  'level': '2',
+    ...  'line': 'Request: World Cafe',
+    ...  'number': '1',
+    ...  'toclevel': 1},
+    ... {'anchor': 'How_to_publish_my_page',
+    ...  'byteoffset': 8292,
+    ...  'fromtitle': 'Wikipedia:Teahouse',
+    ...  'index': '2',
+    ...  'level': '2',
+    ...  'line': 'How to publish my page',
+    ...  'number': '2',
+    ...  'toclevel': 1}
+    ... ]
+    True
+    """
+    params = {'action': 'parse',
+              'prop': 'sections',
+              'format': 'json',
+              'formatversion': 2,
+              }
+    if isinstance(pageindicator, int):
+        params['oldid'] = pageindicator
+    else:
+        params['page'] = pageindicator
+
+    api_call_result = manual_API_call(site, **params)
+
+    # Traverse two levels of the dictionary and return
+    return api_call_result['parse']['sections']
+
+
+def get_revisions_from_api(pagename, oldtimestamp, newtimestamp,
+                           maxcontinuenumber=0, continuestring=None,
+                           site=pywikibot.Site()):  # noqa: D301
+    """Get all revisions to specific page since a given timestamp.
+
+    Input:
+    - pagename: string, title of the page for which to pull revisions
+    - oldtimestamp, newtimestamp: strings, representing timestamps in Mediawiki
+      format, between which to lookup the revisions
+    Output: a list of dict, each corresponding to a single revision
+
+    That function can also pull multiple pages with the rvcontinue API key.
+    To do so, the function is called recursively with a continuenumber (counter
+    describing the maximum number of page pulls left, to avoid infinite looping
+    while requesting API resources) and a continuestring, cf. rvcontinue in
+    https://www.mediawiki.org/wiki/API:Revisions
+
+    Doctests:
+    >>> get_revisions_from_api('Tiger','2018-03-01T00:00:00Z',
+    ...                        '2018-03-05T00:00:00Z') ==\
+    [{'timestamp': '2018-03-04T15:30:31Z',
+    ...  'parentid': 828307448,
+    ...  'comment': '/* Size */Journal cites: format page range,',
+    ...  'user': 'Rjwilmsi',
+    ...  'revid': 828751877},
+    ... {'timestamp': '2018-03-01T20:11:02Z',
+    ...  'parentid': 828233956,
+    ...  'comment': '/* Reproduction */ hatnote',
+    ...  'user': 'BDD',
+    ...  'revid': 828307448},
+    ... {'timestamp': '2018-03-01T10:08:52Z',
+    ...  'parentid': 828032712,
+    ...  'comment': '/* Taxonomy */ edited ref',
+    ...  'user': 'BhagyaMani',
+    ...  'revid': 828233956}]
+    True
+    """
+    params = {'action': 'query',
+              'prop': 'revisions',
+              'titles': pagename,
+              'format': 'json',
+              'rvprop': 'timestamp|user|comment|ids',
+              'rvdir': 'older',
+              'rvend': oldtimestamp,
+              'rvstart': newtimestamp,
+              'rvlimit': 'max'
+              }
+
+    # Previous call may require to continue a call
+    if continuestring:
+        params['rvcontinue'] = continuestring
+
+    api_call_result = manual_API_call(site, **params)
+
+    tmp = api_call_result['query']['pages']
+    tmp2 = list(tmp.keys())  # single-element list e.g. ['36896']
+    revlist = tmp[tmp2[0]]['revisions']
+
+    # Check if we need to pull more revisions
+    # If so, recursively call itself and merge results
+    if maxcontinuenumber > 0 and 'query-continue' in api_call_result:
+        # 'batchcomplete' key present = no continue needed
+        # maxcontinuenumber<=0 = we have reached the maximum of continues
+
+        # toprint = api_call_result.copy()
+        # toprint['query']['pages'] = '...some stuff...'
+        # print(toprint)
+        cs = api_call_result['query-continue']['revisions']['rvcontinue']
+        rcl = get_revisions_from_api(pagename, oldtimestamp, newtimestamp,
+                                     maxcontinuenumber=maxcontinuenumber - 1,
+                                     continuestring=cs)
+        full_list = revlist + rcl
+        return full_list
+    else:
+        return revlist
+
+
+# Other commands
+def isnotifiable(users):
+    """Check if specified users can be notified.
+
+    Input: list of strings (usernames).
+    Output is a dict of booleans, keys match input (True = can be notified).
+
+    This takes care of the policy aspect (who gets notified, in general)
+    but NOT of bot exclusion compliance, which must be handled elsewhere.
+    For instance pywikibot's scripts should take care of it, per
+    https://en.wikipedia.org/wiki/Template:Bots#Implementation
+
+    Current policy is to notify anyone regardless of 'age' (edit count) or
+    groups (autoconfirmed etc.) but to not notify blocked users.
+
+    Doctests:
+    >>> isnotifiable(['Tigraan', '85.17.92.13', 'Nonexisting username']
+    ...              ) == {'Tigraan': True,
+    ...                    '85.17.92.13': False,
+    ...                    'Nonexisting username': False}
+    True
+    """
+    # Block information
+    isblocked = get_block_info(users)
+
+    # Other general user information
+    # WARNING! For IP editors, all we get is the 'invalid' key.
+    # Do not rely on this to get (e.g.) the edit count of an IP editor!
+    userinfo = get_user_info(users)
+
+    is_notifiable = dict()
+    no_notif_str = 'No notification will be sent.'
+    unknown_user_str = 'User "{un}" does not seem to exist. ' + no_notif_str
+    blocked_user_str = 'User "{un}" is currently blocked. ' + no_notif_str
+    for u in users:
+        info = userinfo[u]
+        # NOTIFICATION POLICY APPLIES HERE
+
+        # If username does not exist (renamed user?) do not notify
+        if 'missing' in info:
+            is_notifiable[u] = False
+            logging.info(unknown_user_str.format(un=u))
+            continue
+
+        # Do not notify currently-blocked users
+        if isblocked[u]:
+            is_notifiable[u] = False
+            logging.info(blocked_user_str.format(un=u))
+            continue
+
+        # # Further policy options, inactive as of 2018-03-18
+        # # Do not notify users with more than x edits
+        # maxedits = 1000
+        # if info['editcount']>maxedits:
+        #     is_notifiable[u] = False
+        #     logging.info('User "{un}" performed more than {nedits} edits and will not be notified.'.format(un=u,nedits=maxedits))  # noqa: E501
+        #
+        # # Do not notify users with the ECP flag
+        # if 'extendedconfirmed' in info['groups']:
+        #     is_notifiable[u] = False
+        #     logging.info('User "{un}" is extended confirmed and will not be notified.'.format(un=u))  # noqa: E501
+
+        # By default, we should notify
+        is_notifiable[u] = True
+
+    return is_notifiable
 
 
 def UTC_timestamp_x_days_ago(days_offset=0):
@@ -232,252 +466,11 @@ def list_matching(ta, threadscreated):
     return output
 
 
-def get_user_info(userlist, infotoget=['groups', 'editcount']):  # noqa: D301
-    """Query the API for user info.
-
-    Input:
-    - userlist is a list of strings, each string being a username
-    - infotoget is the list of user info to return, cf. API documentation
-    Output: dict whose keys are exactly the strings from userinfo, each entry
-    containing the user information returned by the API for said user.
-
-    Doctests:
-    >>> get_user_info(['Jimbo Wales','Sandbox for user warnings']
-    ...              ).keys() == {'Jimbo Wales','Sandbox for user warnings'}
-    True
-    >>> get_user_info(['Jimbo Wales'])['Jimbo Wales']['groups'] ==\
-    ['checkuser','founder','oversight','sysop','*','user','autoconfirmed']
-    True
-    >>> get_user_info(['Nonexisting username'])==\
-    {'Nonexisting username': {'missing': True, 'name': 'Nonexisting username'}}
-    True
-    """
-    API_user_string = '|'.join(userlist)
-    API_info_string = '|'.join(infotoget)
-
-    params = {'action': 'query',
-              'list': 'users',
-              'ususers': API_user_string,
-              'usprop': API_info_string,
-              'format': 'json',
-              'formatversion': 2,
-              }
-
-    rawoutput = api_call(params)
-    # Example (with users Tigraan, Jimbo Wales, Danadan and a dummy) for the
-    # API raw output:
-    # {'batchcomplete': True,
-    # 'query': {'users': [{'invalid': True, 'name': '12.54.29.3'},
-    #                  {'editcount': 3529,
-    #                   'groups': ['extendedconfirmed',
-    #                              '*',
-    #                              'user',
-    #                              'autoconfirmed'],
-    #                   'name': 'Tigraan',
-    #                   'userid': 18899359},
-    #                  {'editcount': 13105,
-    #                   'groups': ['checkuser',
-    #                              'founder',
-    #                              'oversight',
-    #                              'sysop',
-    #                              '*',
-    #                              'user',
-    #                              'autoconfirmed'],
-    #                   'name': 'Jimbo Wales',
-    #                   'userid': 24},
-    #                  {'blockedby': 'Dougweller',
-    #                   'blockedbyid': 1304678,
-    #                   'blockedtimestamp': '2009-07-02T08:37:58Z',
-    #                   'blockexpiry': 'infinity',
-    #                   'blockid': 1505586,
-    #                   'blockreason':'[[WP:Spam|Spamming]] links to external '
-    #                                 'sites: disguising links as news links, '
-    #                                 'using multiple identities',
-    #                   'editcount': 2,
-    #                   'groups': ['*', 'user'],
-    #                   'name': 'Dananadan',
-    #                   'userid': 9977555},
-    #                  {'missing': True,
-    #                   'name': 'This username does not exist'}]}}
-
-    # traverse the first two levels
-    resultlist = rawoutput['query']['users']
-
-    # transform into a dictionary whose keys are the usernames
-    resultdict = dict()
-    for entry in resultlist:
-        resultdict[entry['name']] = entry
-    return resultdict
-
-
-def get_block_info(userlist):
-    """Query the API for block info.
-
-    Input: a list of strings, each string being a username.
-    Output: a dictionary of bool such that dict[user] is True if the user
-    currently (1) exists and (2) is blocked; dict keys match the input.
-
-    Although get_user_info could be used to check for a current block on logged
-    accounts, it is not possible on IP accounts, hence the need for this other
-    subfunction. See also
-    - https://www.mediawiki.org/wiki/API:Users
-    - https://www.mediawiki.org/w/index.php?title=Topic:Tspl9p7oiyzzm19w
-
-    Doctests:
-    >>> get_block_info(['Tigraan', '85.17.92.13', 'Nonexisting username']
-    ...                ) == {'Tigraan': False,
-    ...                      '85.17.92.13': True,
-    ...                      'Nonexisting username': False}
-    True
-    """
-    user_string = '|'.join(userlist)
-
-    params = {'action': 'query',
-              'list': 'blocks',
-              'bkusers': user_string,
-              'bkprop': 'user',
-              'format': 'json',
-              'formatversion': 2,
-              }
-
-    rawoutput = api_call(params)
-
-    # traverse the first two levels
-    resultlist = rawoutput['query']['blocks']
-
-    # transform result into a dict of bool
-    resultdict = dict()
-    for user in userlist:
-        resultdict[user] = ({'user': user} in resultlist)
-    return resultdict
-
-
-def isnotifiable(users):
-    """Check if specified users can be notified.
-
-    Input: list of strings (usernames).
-    Output is a dict of booleans, keys match input (True = can be notified).
-
-    This takes care of the policy aspect (who gets notified, in general)
-    but NOT of bot exclusion compliance, which must be handled elsewhere.
-    For instance pywikibot's scripts should take care of it, per
-    https://en.wikipedia.org/wiki/Template:Bots#Implementation
-
-    Current policy is to notify anyone regardless of 'age' (edit count) or
-    groups (autoconfirmed etc.) but to not notify blocked users.
-
-    Doctests:
-    >>> isnotifiable(['Tigraan', '85.17.92.13', 'Nonexisting username']
-    ...              ) == {'Tigraan': True,
-    ...                    '85.17.92.13': False,
-    ...                    'Nonexisting username': False}
-    True
-    """
-    # Block information
-    isblocked = get_block_info(users)
-
-    # Other general user information
-    # WARNING! For IP editors, all we get is the 'invalid' key.
-    # Do not rely on this to get (e.g.) the edit count of an IP editor!
-    userinfo = get_user_info(users, infotoget=['groups'])
-
-    is_notifiable = dict()
-    no_notif_str = 'No notification will be sent.'
-    unknown_user_str = 'User "{un}" does not seem to exist. ' + no_notif_str
-    blocked_user_str = 'User "{un}" is currently blocked. ' + no_notif_str
-    for u in users:
-        info = userinfo[u]
-        # NOTIFICATION POLICY APPLIES HERE
-
-        # If username does not exist (renamed user?) do not notify
-        if 'missing' in info:
-            is_notifiable[u] = False
-            logging.info(unknown_user_str.format(un=u))
-            continue
-
-        # Do not notify currently-blocked users
-        if isblocked[u]:
-            is_notifiable[u] = False
-            logging.info(blocked_user_str.format(un=u))
-            continue
-
-        # # Further policy options, inactive as of 2018-03-18
-        # # Do not notify users with more than x edits
-        # maxedits = 1000
-        # if info['editcount']>maxedits:
-        #     is_notifiable[u] = False
-        #     logging.info('User "{un}" performed more than {nedits} edits and will not be notified.'.format(un=u,nedits=maxedits))  # noqa: E501
-        #
-        # # Do not notify users with the ECP flag
-        # if 'extendedconfirmed' in info['groups']:
-        #     is_notifiable[u] = False
-        #     logging.info('User "{un}" is extended confirmed and will not be notified.'.format(un=u))  # noqa: E501
-
-        # By default, we should notify
-        is_notifiable[u] = True
-
-    return is_notifiable
-
-
-def get_sections_from_api(pageindicator):  # noqa: D301
-    """Get list of sections from specific page revision.
-
-    Adapted from code by User:Jtmorgan:
-    http://paws-public.wmflabs.org/paws-public/User:Jtmorgan/API_calls.ipynb
-
-    Input is a single page indicator, which can be either a string (e.g.
-    "Main Page") in which case the latest revision is used, or an integer, in
-    which case it is treated as a revision number via 'oldid' in
-    https://www.mediawiki.org/wiki/API:Parsing_wikitext
-
-    Doctests:
-    >>> get_sections_from_api(783718598)[:2]==\
-    [{'anchor': 'Request:_World_Cafe',
-    ...  'byteoffset': 3329,
-    ...  'fromtitle': 'Wikipedia:Teahouse',
-    ...  'index': '1',
-    ...  'level': '2',
-    ...  'line': 'Request: World Cafe',
-    ...  'number': '1',
-    ...  'toclevel': 1},
-    ... {'anchor': 'How_to_publish_my_page',
-    ...  'byteoffset': 8292,
-    ...  'fromtitle': 'Wikipedia:Teahouse',
-    ...  'index': '2',
-    ...  'level': '2',
-    ...  'line': 'How to publish my page',
-    ...  'number': '2',
-    ...  'toclevel': 1}
-    ... ]
-    True
-    """
-    # check format of input parameter and act accordingly
-    if isinstance(pageindicator, str):
-        params = {'action': 'parse',
-                  'prop': 'sections',
-                  'format': 'json',
-                  'formatversion': 2,
-                  'page': pageindicator,
-                  }
-    else:
-        params = {'action': 'parse',
-                  'prop': 'sections',
-                  'format': 'json',
-                  'formatversion': 2,
-                  'oldid': pageindicator,
-                  }
-
-    api_call_result = api_call(params)
-
-    # Traverse two levels of the dictionary and return
-    return api_call_result['parse']['sections']
-
-
 def traverse_list_of_sections(inputlistofdict):
     """Get list of sections from the API output.
 
-    Remove the fluff (data offset etc.) from get_sections_from_api to get only
-    thread names (i.e. the 'line' key).
+    Remove the fluff (data offset etc.) from get_sections_from_revid to get
+    only thread names (i.e. the 'line' key).
     """
     output_list = []
 
@@ -488,9 +481,9 @@ def traverse_list_of_sections(inputlistofdict):
 
 
 def find_section_anchor(inputlistofdict, sectionname):
-    """Match a section name to the output of get_sections_from_api.
+    """Match a section name to the output of get_sections_from_revid.
 
-    Input: inputlistofdict comes from get_sections_from_api (list of dict),
+    Input: inputlistofdict comes from get_sections_from_revid (list of dict),
     sectionname is a string (name of a thread).
 
     Output: a list of section anchors, corresponding to all unique
@@ -541,7 +534,7 @@ def search_archives_for_section(links_to_search, sectionnames):
     archive pages to search; sectionnames is a list of strings, the 'anchor's
     to match.
 
-    Doctests: TODO
+    Doctests:
     >>> search_archives_for_section(['Wikipedia:Teahouse/Questions/Archive_98',
     ...                              'Wikipedia:Teahouse/Questions/Archive_99'
     ...                              ],['Picture problem', 'Blog as reference?'])  # noqa: E501
@@ -550,7 +543,7 @@ def search_archives_for_section(links_to_search, sectionnames):
     # First, query the API for the content of the archive links
     archive_contents = dict()
     for archivelink in links_to_search:
-        linkcontent = get_sections_from_api(archivelink)
+        linkcontent = get_sections_from_revid(archivelink)
         archive_contents[archivelink] = linkcontent  # links as keys, why not
 
         # print(linkcontent)
@@ -603,110 +596,14 @@ def sections_removed_by_diff(revid1, revid2):
     >>> sections_removed_by_diff(783715718,783718598)[:2]
     ['Red links', 'how to undo a merge made 6 yrs ago']
     """
-    json1 = get_sections_from_api(revid1)
+    json1 = get_sections_from_revid(revid1)
     sec_list_1 = traverse_list_of_sections(json1)
 
-    json2 = get_sections_from_api(revid2)
+    json2 = get_sections_from_revid(revid2)
     sec_list_2 = traverse_list_of_sections(json2)
 
     set_of_sections_removed = safe_list_diff(sec_list_1, sec_list_2)
     return set_of_sections_removed
-
-
-def get_revisions_from_api(pagename, oldtimestamp, newtimestamp,
-                           maxcontinuenumber=0, continuestring=None):  # noqa: D301
-    """Get all revisions to specific page since a given timestamp.
-
-    Input:
-    - pagename: string, title of the page for which to pull revisions
-    - oldtimestamp, newtimestamp: strings, representing timestamps in Mediawiki
-      format, between which to lookup the revisions
-    Output: a list of dict, each corresponding to a single revision
-
-    That function can also pull multiple pages with the rvcontinue API key.
-    To do so, the function is called recursively with a continuenumber (counter
-    describing the maximum number of page pulls left, to avoid infinite looping
-    while requesting API resources) and a continuestring, cf. rvcontinue in
-    https://www.mediawiki.org/wiki/API:Revisions
-
-    Doctests:
-    >>> get_revisions_from_api('Tiger','2018-03-01T00:00:00Z',
-    ...                        '2018-03-05T00:00:00Z') ==\
-    [{'timestamp': '2018-03-04T15:30:31Z',
-    ...  'parentid': 828307448,
-    ...  'comment': '/* Size */Journal cites: format page range,',
-    ...  'user': 'Rjwilmsi',
-    ...  'revid': 828751877},
-    ... {'timestamp': '2018-03-01T20:11:02Z',
-    ...  'parentid': 828233956,
-    ...  'comment': '/* Reproduction */ hatnote',
-    ...  'user': 'BDD',
-    ...  'revid': 828307448},
-    ... {'timestamp': '2018-03-01T10:08:52Z',
-    ...  'parentid': 828032712,
-    ...  'comment': '/* Taxonomy */ edited ref',
-    ...  'user': 'BhagyaMani',
-    ...  'revid': 828233956}]
-    True
-    """
-    params = {'action': 'query',
-              'prop': 'revisions',
-              'titles': pagename,
-              'format': 'json',
-              'rvprop': 'timestamp|user|comment|ids',
-              'rvdir': 'older',
-              'rvend': oldtimestamp,
-              'rvstart': newtimestamp,
-              'rvlimit': 'max'
-              }
-
-    # Previous call may require to continue a call
-    if continuestring:
-        params['rvcontinue'] = continuestring
-
-    api_call_result = api_call(params)
-
-    # At that point we still have some hierarchy to traverse.
-    # Example output for 'blob': (2 revisions of 'Lion' on en-wp)
-    #     {'batchcomplete': '',
-    #      'query': {'pages': {'36896': {'ns': 0,
-    #                    'pageid': 36896,
-    #                    'revisions': [{'comment': 'we have enough '
-    #                                              'images here',
-    #                                   'parentid': 783432210,
-    #                                   'revid': 783454040,
-    #                                   'timestamp': '2017-06-02T12:07:21Z',
-    #                                   'user': 'LittleJerry'},
-    #                                  {'comment': '/* Cultural '
-    #                                              'significance */ An '
-    #                                              'old advert which '
-    #                                              "depicts the lion's "
-    #                                              'cultural '
-    #                                              'significance in '
-    #                                              '[[England]].',
-    #                                   'parentid': 783139314,
-    #                                   'revid': 783432210,
-    #                                   'timestamp': '2017-06-02T07:38:02Z',
-    #                                   'user': 'Leo1pard'}],
-    #                    'title': 'Lion'}}}}
-
-    tmp = api_call_result['query']['pages']
-    tmp2 = list(tmp.keys())  # ['36896'] in the above example but it can change
-    revlist = tmp[tmp2[0]]['revisions']
-
-    # Check if we need to pull more revisions
-    # If so, recursively call itself and merge results
-    if maxcontinuenumber > 0 and 'batchcomplete' not in api_call_result:
-        # 'batchcomplete' key present = no continue needed
-        # maxcontinuenumber<=0 = we have reached the maximum of continues
-        cs = api_call_result['continue']['rvcontinue']
-        rcl = get_revisions_from_api(pagename, oldtimestamp, newtimestamp,
-                                     maxcontinuenumber=maxcontinuenumber - 1,
-                                     continuestring=cs)
-        full_list = revlist + rcl
-        return full_list
-    else:
-        return revlist
 
 
 def revisions_since_x_days(pagename, ndays, maxcontinuenumber=0):
@@ -831,7 +728,6 @@ def last_archival_edit(maxdays=1, thname='Wikipedia:Teahouse',
     return output
 
 
-# FLAG
 def generate_notification_list():
     """Make list of notifications to make.
 
@@ -914,6 +810,7 @@ def notify(user, argstr, testlvl):
     No output to stdout, since this will cause posts on WP.
     """
     if testlvl == 1:
+        raise ValueError('Test level 1 no longer works.')
         site = pywikibot.Site('test', 'test')
         page = pywikibot.Page(site, 'User talk:Tigraan-testbot/THA log')
         sn = 'Notification intended for [[:en:User talk:' + user + ']]'
@@ -921,7 +818,7 @@ def notify(user, argstr, testlvl):
 
     elif testlvl == 2:
         site = pywikibot.Site('en', 'wikipedia')
-        page = pywikibot.Page(site, 'User talk:Tigraan-testbot/THA log')
+        page = pywikibot.Page(site, 'User talk:Munninbot/THA log')
         sn = 'Notification intended for [[:en:User talk:' + user + ']]'
         es = 'Notification intended for [[:en:User talk:' + user + ']]'
 
@@ -960,7 +857,7 @@ def notify(user, argstr, testlvl):
 
 def notify_all(notification_list, status,
                archive_from='[[Wikipedia:Teahouse]]',
-               botname='Tigraan-testbot'):
+               botname='Muninnbot'):
     """Execute notification list.
 
     Input:
@@ -1014,17 +911,20 @@ def main():
     - check for each user whether they can be sent a notification
     - send notifications for whoever can receive them
 
-    Before doing all this, log in (as Tigraan-testbot: requires user input),
-    and log out afterwards, by PWB commands.
+    With PWB/OAuth we should be logged in everytime.
     """
-    # log in
-    login.main()  # login as Tigraan-testbot
-    logging.info('Currently logged as:' + str(whoami()))
+    # try to log in, fail if it does not work
+    s = pywikibot.Site()
+    s.login()
+    assert s.logged_in()
 
+    cur_user = whoami(site=s)
+    logging.info('Currently logged as:' + cur_user)
+    assert cur_user == 'Muninnbot'
+
+    # place the notifications
     notiflist = generate_notification_list()
-
-    notify_all(notiflist, status='offlinetest')
-    login.main('-logout')  # logout
+    notify_all(notiflist, status='test-2')
 
 if __name__ == "__main__":
     # Unit test run. See
