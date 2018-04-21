@@ -1076,8 +1076,10 @@ def main():
 
 def logintest():
     """Simple test to see if we can log under the correct account."""
-    s = pywikibot.Site()
-    s.login()
+    logging.info('Currently logged as:' + str(whoami()))
+    login.main()
+    logging.info('Currently logged as:' + str(whoami()))
+    login.main('-logout')
     logging.info('Currently logged as:' + str(whoami()))
 
 if __name__ == "__main__":
