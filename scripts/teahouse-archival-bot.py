@@ -924,7 +924,7 @@ def main():
 
     # place the notifications
     notiflist = generate_notification_list()
-    notify_all(notiflist, status='test-2')
+    notify_all(notiflist, status='test-3')
 
 if __name__ == "__main__":
     # Unit test run. See
