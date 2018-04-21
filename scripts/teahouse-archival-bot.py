@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """Archival bot v. 2.
 
-Rewritten on 2018-03-18 (Tigraan) for multiple reasons.
+2.0 - 2018-03-18 (Tigraan): rewritten for multiple reasons.
 
 First, to comply with some sane code guidelines:
 - enforced by Flake8 linter (http://flake8.pycqa.org/en/latest/) on my machine
@@ -20,6 +20,10 @@ We ignore D301 ("a docstring that contains line continuations should be marked
 raw") in a few places because doing so breaks the line continuation by
 backslash when running the doctest. This is indicated by # noqa: D301 comments.
 
+2.1 - 2018-04-21 (Tigraan): change for PWB compat.
+
+All the various API call stuff must be changed to use OAuth/PWB to log in, so
+we just make the big switch to full-PWB.
 
 License:
 
@@ -71,33 +75,6 @@ else:
         from core import pywikibot
         from core.scripts import add_text
         from core.scripts import login
-
-
-def my_http_headers():
-    """Give default user agent and other headers of the script.
-
-    API calls to Mediawiki must include this, see
-    https://www.mediawiki.org/wiki/API:Main_page#Identifying_your_client
-
-    No input
-    Output is a dict with fields 'User-Agent', 'Accept', 'Connection' and
-    'Accept-Encoding'.
-
-    Doctests:
-    >>> my_http_headers()['User-Agent']
-    'python-requests/2.9.1 - User:Tigraan'
-
-    """
-    headers = requests.utils.default_headers()
-    def_ua = headers['User-Agent']  # 'python-requests/2.9.1' or similar
-    my_ua = '{default} - {my_text}'.format(default=def_ua,
-                                           my_text='User:Tigraan')
-    headers.update(
-        {
-            'User-Agent': my_ua,
-        }
-    )
-    return headers
 
 
 def api_call(parameters, endpoint="https://en.wikipedia.org/w/api.php"):
