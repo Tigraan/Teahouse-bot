@@ -1,0 +1,47 @@
+
+
+===Thread comparison and recovery===
+
+The procedure to match archived threads to their originator is as follows:
+1- find sections that were removed in the last archival edit
+2- check page history from the last x days (as of 2017-06-13, x=10) for new section creations
+3- compare the thread names resulting from 1 and 2, and determine OP if unique match found.
+
+The only comparison key is the thread name, which could theoretically cause some issues.
+
+====False negatives====
+
+=====Long-lived threads=====
+
+After archival, threads that were live for a long time will fail to match previous thread creations.
+
+Explanation: this is because threads created more than x days ago (i.e. that had activity long enough to escape quick archival) will not appear in step 2.
+
+Tempting but incorrect fix: if matching fail, increase x for this run. This is not a good idea, because because some threads will never match no matter how far back the history is searched (name changed between creation and archival), and others will give false positives (thread name collision with a previous thread).
+
+Possible fix: parse timestamps of the archived threads that weren’t matched and look through the page history at the correct times.
+
+Status: won't fix. It would require significant parsing of the threads.
+
+=====Name collision=====
+
+A thread won't match if another thread with the same name was created at a similar time.
+
+Explanation: if step 2 returns multiple matches for the thread, it is skipped. This happens if a thread is archived less than x days after the creation of another one of the same name.
+
+Possible fix: cf previous, some parsing of the timestamps and possibly signatures could help.
+
+Status: won't fix. It would require significant parsing of the threads.
+
+====False positive: cross-archival====
+
+OP of thread A gets an archival notification for thread B, which has the same name but was not created by them.
+
+Explanation: thread B was recently archived, and thread A was matched in step 2. This only happens if thread B was created more than x days before it was archived (long-lived thread), and thread A was opened in the meantime, and thread A was not archived in the same edit as thread B (but the bug can happen if thread A is still live or was archived previously).
+
+Partial fix: instead of searching the history in the interval [currentday-x,currentday], search in [currentday-x,currentday-archivaldelay]. This reduces the possible collision window for the creation of A without any detrimental effect, but requires to determine the archival delay (at the time the archival bot ran; the setting could have changed since).
+
+Full fix: cf. previous (parse timestamps, etc.)
+
+Status: won't fix. Partial fix could be done, but considering the conditions, this is probably a solution in search of a problem.
+
