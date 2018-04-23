@@ -848,11 +848,7 @@ def notify(user, argstr, testlvl):
         text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|'\
                + argstr + '}}'
 
-    post_text = '=={sn}==\n{tta}'.format(sn=sn, tta=text)
-
-    # Caution: will not ask for confirmation!
-    add_text.add_text(page, post_text, summary=es,
-                      always=True, up=False, create=True)
+    page.save(text=text, summary=sn, section='new', minor=False, botflag=True)
 
 
 def notify_all(notification_list, status,
