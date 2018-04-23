@@ -47,12 +47,14 @@ import re  # regular expressions, used to match new section edit summaries
 
 # Pywikibot and associated imports
 import pywikibot
-from scripts import add_text
 
 
 # Commands that directly call the API using PWB
 def manual_API_call(site, **kwargs):  # noqa: D301
     """Make API request by giving parameters 'by hand'.
+
+    Workaround to make direct API calls, because PWB does not (yet?) support
+    all API syntax, including some stuff we need.
 
     Input:
     - site is an APISite, e.g. obtained by pywikibot.Site(); PWB should be able
@@ -72,7 +74,7 @@ def manual_API_call(site, **kwargs):  # noqa: D301
                   'fromtitle': 'Wikipedia:Teahouse', 'level': '2'}]
     True
     """
-    request = site._simple_request(**kwargs)
+    request = pywikibot.data.api.Request.create_simple(site, **kwargs)
     return request.submit()
 
 
@@ -920,7 +922,7 @@ def main():
 
     # place the notifications
     notiflist = generate_notification_list()
-    notify_all(notiflist, status='test-3')
+    notify_all(notiflist, status='test-2')
 
 if __name__ == "__main__":
     # Unit test run. See
