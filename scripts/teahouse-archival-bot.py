@@ -832,11 +832,9 @@ def notify(user, argstr, testlvl):
 
     elif testlvl == 0:
         # Production code goes here
-        if False:  # remove this "test" once you go in production
-            site = pywikibot.Site('en', 'wikipedia')
-            page = pywikibot.Page(site, 'User talk:' + user)
-            sn = 'Your thread has been archived'
-            es = 'Your thread has been archived'
+        site = pywikibot.Site('en', 'wikipedia')
+        page = pywikibot.Page(site, 'User talk:' + user)
+        sn = 'Your thread has been archived'
 
     # 0 for production, all the rest creates a "this is in test phase" comment
     if testlvl > 0:
@@ -922,7 +920,7 @@ def main():
 
     # place the notifications
     notiflist = generate_notification_list()
-    notify_all(notiflist, status='test-3')
+    notify_all(notiflist, status='prod')
 
 if __name__ == "__main__":
     # Unit test run. See
