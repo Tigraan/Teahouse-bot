@@ -814,7 +814,7 @@ def notify(user, argstr, testlvl):
     if testlvl == 1:
         raise ValueError('Test level 1 no longer works.')
         site = pywikibot.Site('test', 'test')
-        page = pywikibot.Page(site, 'User talk:Tigraan-testbot/THA log')
+        page = pywikibot.Page(site, 'User talk:Muninnbot/THA log')
         sn = 'Notification intended for [[:en:User talk:' + user + ']]'
         es = 'Notification intended for [[:en:User talk:' + user + ']]'
 
@@ -842,10 +842,10 @@ def notify(user, argstr, testlvl):
                        + "test. If you received this notification by error, "\
                        + "please [[User talk:Tigraan|notify the bot's"\
                        + " maintainer]].</small>"
-        text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|'\
+        text = '{{subst:User:Muninnbot/Teahouse archival notification|'\
                + argstr + '|additionaltext=' + test_comment + '}}'
     else:
-        text = '{{subst:User:Tigraan-testbot/Teahouse archival notification|'\
+        text = '{{subst:User:Muninnbot/Teahouse archival notification|'\
                + argstr + '}}'
 
     page.save(text=text, summary=sn, section='new', minor=False, botflag=True)
